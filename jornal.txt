@@ -1,0 +1,6 @@
+django-admin startproject dsh
+python manage.py startapp dsh_project
+add simple in dsh/urls, app_dsh/urls app_dsh/views ))
+
+
+* у urls добавляють  views i кaстомізують їх, як і кастомізувати urls

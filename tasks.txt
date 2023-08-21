@@ -1,0 +1,14 @@
+* models
+* bd
+* transfer object
+* react.js
+ * components
+ * path / urls
+ * router
+ * style html/css (bootstrap?)
+* admin
+* connection
+* best db?
+*
+
+*url patterns
