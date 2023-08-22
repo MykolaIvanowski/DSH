@@ -1,0 +1,33 @@
+* model
+    * order
+    * category
+    * products
+* db switch (mysql, postgres)
+* url patterns
+* statics
+* react.js
+    * templates
+    * components
+    * route
+* admin tools
+    * add category
+    * add products
+    * see orders
+* tests?
+* jornal
+* example with explanations
+* validations
+* basket order
+    * ukr/nova
+    * manage delivery in category/products
+* base page
+    * what on the first page?
+        * products/news/short_info/etc?
+    * left sidebar
+    * top
+    * foot
+    * category
+    * top category/unit/pages
+* product search
+    * description/full_words/topic/topic_description
+
