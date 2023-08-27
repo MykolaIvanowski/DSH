@@ -17,10 +17,11 @@ class Category(models.Model):
 class Product(models.Model):
     product_id = models.IntegerField(blank=True, null=True)
     category_id = models.IntegerField(blank=True, null=True)
-    product_name = models.TextField(blank=True, null=True)
+    product_title = models.TextField(blank=True, null=True)
     product_description = models.TextField(blank=True, null=True)
-    product_foto = models.TextField(blank=True, null=True)
+    image = models.ImageField()
     product_price = models.FloatField(blank=True, null=True)
+    is_active = models.BooleanField(default=True)
 
 
 #  i gues it is should be many to many)))
