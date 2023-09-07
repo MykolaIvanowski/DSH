@@ -31,3 +31,7 @@
 * product search
     * description/full_words/topic/topic_description
 
+-   repo: https://github.com/PyCQA/isort
+    rev: 5.7.0
+    hooks:
+      - id: isort
