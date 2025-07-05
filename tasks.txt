@@ -35,3 +35,34 @@
     rev: 5.7.0
     hooks:
       - id: isort
+* cart
+    - possible to use without online pay ( form: email, name, for you or other,
+     address, phone, list of products )
+    -  possible to switch to online pay (but maybe not)
+* user page (or without)
+    - emai
+    - name
+    - phone (for delivery)
+    - list of bought products
+    - list products in progres
+
+* views or/instead: html, urls
+     - navbar
+     - home page
+     - foot
+     - top
+     - about (description page)
+     - cart
+
+* encrypting
+    - in case only delivery
+    - in case with  registration users (integration with google?)
+
+***
+super short version
+- list of products (page about)
+- cart with order without pay (like buy in 1 clik)
+- secure the order, user information
+= possibility to add product, category
+- search for product
+- some notification for admin (new order receive)
