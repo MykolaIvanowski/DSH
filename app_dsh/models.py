@@ -1,4 +1,5 @@
 from django.db import models
+from django.utils.translation.template import blankout
 
 
 # Create your models here.
@@ -35,3 +36,8 @@ class Order(models.Model):
 class Delivery(models.Model):
     delivery_id = models.IntegerField(blank=True, null=True)
     delivery_name = models.TextField(blank=True, null=True)
+
+
+class User(models.Model):
+    name = models.CharField(blank=True, null=True)
+    lastname = models.CharField(blank=True, null=True)
