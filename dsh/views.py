@@ -1,6 +1,6 @@
 from django.http import HttpResponse
 from django.shortcuts import render, redirect
-from .models import Product
+from app_dsh.models import Product
 from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
 
