@@ -26,7 +26,7 @@ class Product(models.Model):
     stock = models.PositiveIntegerField()
     image = models.ImageField(upload_to='product_images/', blank=True, null=True)
     is_sale = models.BooleanField(default=False)
-    sale_prise  = models.DecimalField(default=0, decimal_places=2, max_digits=6)
+    sale_price  = models.DecimalField(default=0, decimal_places=2, max_digits=6)
 
     def __str__(self):
         return self.name
