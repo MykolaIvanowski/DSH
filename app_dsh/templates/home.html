@@ -80,8 +80,13 @@
                                         <h5 class="fw-bolder">{{ product.name }}</h5>
                                         <!-- Product price-->
                                         {% if product.is_sale %}
+                                        <div class="d-flex justify-content-center small text-warning mb-2">
+                                        <div class="bi-star-fill"></div>
+                                        &nbsp;&nbsp;SALE!!&nbsp;&nbsp;
+                                        <div class="bi-star-fill"></div>
+                                    </div>
                                        <strike> {{ product.price }} $</strike>
-                                            SALE!!
+                                    <!-- Product price-->
                                         {{ product.sale_price}}
                                         {% else %}
                                         {{ product.price }}
