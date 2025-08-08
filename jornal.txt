@@ -1,4 +1,0 @@
-django-admin startproject dsh
-python manage.py startapp dsh_project
-add simple in dsh/urls, app_dsh/urls app_dsh/views ))
-add view context simple,index template simple, rename

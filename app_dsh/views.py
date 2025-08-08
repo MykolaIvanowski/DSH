@@ -1,6 +1,7 @@
 from django.http import HttpResponse
 from django.shortcuts import render, redirect
 from .models import Product
+from .forms import RegistrationForm
 from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
 
@@ -37,6 +38,19 @@ def logout_user(request):
     return redirect('home')
 
 def register_user(request):
-    form = SignUpForm()
+    form = RegistrationForm()
     if request.method == "POST":
-        form=
+        form = RegistrationForm(request.POST)
+        if form.is_valid():
+            form.save()
+            username = form.cleaned_data('username')
+            password = form.cleaned_data('password1')
+            user = authenticate(username=username, password=password)
+            login(request, user)
+            messages.success(request, ("Username created - please filed out of you user info below"))
+            return redirect('updated_info')
+        else:
+            messages.success(request, ("Whoops there was a problem registration, please try again..."))
+            return redirect('register')
+    else:
+        return render(request, 'register.html', {'form':form})

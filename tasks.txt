@@ -61,8 +61,9 @@
 ***
 super short version
 - list of products (page about)
+= possibility to add product, category
 - cart with order without pay (like buy in 1 clik)
 - secure the order, user information
-= possibility to add product, category
 - search for product
 - some notification for admin (new order receive)
+- send email for status when buy for user (or trak sistem with delivery)
