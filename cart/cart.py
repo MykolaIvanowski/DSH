@@ -75,7 +75,7 @@ class Cart:
         cart = self.cart
         return cart
 
-    def delete_fro_cart(self, product):
+    def delete_from_cart(self, product):
         product_id = str(product)
         if product_id in self.cart:
             del self.cart[product_id]
