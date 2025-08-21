@@ -1,10 +1,12 @@
 from django.http import HttpResponse
 from django.shortcuts import render, redirect
-from .models import Product
+from unicodedata import category
+
+from .models import Product, Category
 from .forms import RegistrationForm
 from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
-
+from django.db.models import Q
 
 def about(request):
     return render(request, 'about.html', {})
@@ -59,3 +61,21 @@ def register_user(request):
 def product_detail(request, id):
     product = Product.objects.get(id=id)
     return render(request, 'product_detail.html', {'product': product})
+
+def search(request):
+    if request.method == 'POST':
+        searched = request.POST['searched']
+        searched =Product.objects.filter(Q(name__icontains=searched),Q(description__icontains=searched))
+        if not searched:
+            messages.success(request, 'That products does not exist')
+            return render(request, "search.html", {})
+        else:
+            return render(request, 'search.html', {'searched': searched})
+    else:
+        return render(request, "search.html",{})
+
+def category_description(request):
+    categories = Category.objects.all()
+    return render(request, 'category_description',{'categories':categories})
+def category(request, category_name):
+    pass
