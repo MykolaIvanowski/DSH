@@ -64,6 +64,11 @@ super short version
 = possibility to add product, category
 - cart with order without pay (like buy in 1 clik)
 - secure the order, user information
+    - refund-?
+    - product quantity to avoid overbuy. solutions: розервація при додаванні(складно),
+                                                    перевірка при оплаті,
+                                                    транзакції,
+                                                    soft stock
 - search for product, products order?
 - some notification for admin (new order receive)
 - send email for status when buy for user (or trak sistem with delivery)/send mail bot prevention
