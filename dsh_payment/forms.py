@@ -1,10 +1,30 @@
-from cProfile import label
-
 from django import forms
+from dsh_payment.models import DeliveryAddress
 
 
 class DeliveryForm(forms.ModelForm):
-    pass
+    delivery_full_name = forms.CharField(label="",widget=forms.TextInput(
+        attrs={'class':'form-control', 'placeholder':'Full name'}),required=True)
+    delivery_email = forms.CharField(label="",widget=forms.TextInput(
+        attrs={'class':'form-control', 'placeholder':'Email'}),required=True)
+    delivery_address1 = forms.CharField(label="",widget=forms.TextInput(
+        attrs={'class':'form-control', 'placeholder':'Delivery address1'}),required=True)
+    delivery_address2 = forms.CharField(label="",widget=forms.TextInput(
+        attrs={'class':'form-control', 'placeholder':'Delivery address2'}),required=False)
+    delivery_city = forms.CharField(label="",widget=forms.TextInput(
+        attrs={'class':'form-control', 'placeholder':'City'}),required=True)
+    delivery_state = forms.CharField(label="",widget=forms.TextInput(
+        attrs={'class':'form-control', 'placeholder':'State'}),required=False)
+    delivery_zipcode = forms.CharField(label="",widget=forms.TextInput(
+        attrs={'class':'form-control', 'placeholder':'Zipcode'}),required=False)
+    delivery_country = forms.CharField(label="",widget=forms.TextInput(
+        attrs={'class':'form-control', 'placeholder':'Country'}),required=True)
+
+    class Meta:
+        model = DeliveryAddress
+        fields = ['delivery_full_name', 'delivery_email', 'delivery_address1', 'delivery_address2', 'delivery_city',
+                  'delivery_state', 'delivery_zipcode', 'delivery_country']
+        exclude = ['user',]
 
 class PaymentForm(forms.ModelForm):
     card_name = forms.CharField(label="", widget=forms.TextInput(
