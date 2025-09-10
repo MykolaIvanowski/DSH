@@ -1,10 +1,83 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-</head>
-<body>
+{% extend 'base.html' %}
+{% block content %}
+<header>
+    <div class="container px-4 px-lg-5 my-5">
+        <div class="text-center text-white">
+            <h1 class="display-4 fw-bolder">Billing information</h1>
+            <p class="lead fw-normal text-white-50 mb-0">Enter your payment information</p>
+        </div>
+    </div>
+</header>
+<br/>
+<div class="container">
+    <div class="row">
+        <div class="col-md-6 offset-md-3">
+            <div class="card">
+                <div class="card-header">
+                Order summary
+                </div>
+                <div class="card-body">
+                    {% product in cart_products %}
+                        {{ product.name }}:
+                            {% if product.is_sale %}
+                                ${{ product.sale_price }}
+                            {% else %}
+                                ${{ product.price }}
+                            {% endif %}
+                    <br/>
+                    <small>Quantity:
+                        {% for key, value in quantities.items %}
+                            {% if key == product.id|slugify %}
+                                {{ value }}
+                            {% endif %}
+                        {% endfor %}
+                    </small><br/><br/>
+                    {% endfor %}
+                    Total: ${{ totals }}
+                    <br/><br/>
+                    <a href="{% url 'cart_summary' %}" class="btn btn-sm btn-outline-primary">Update items</a>
+                </div>
+            </div>
+            <br/><br/>
+            <div class="card">
+                <div class="card-header">
+                Delivery info
+                </div>
+            <div class="card-body">
+                Name: {{ delivery_info.delivery_full_name }} <br/>
+                Email: {{ delivery_info.delivery_email }} <br/>
+                Address 1: {{ delivery_info.delivery_address1 }} <br/>
+                Address 2: {{ delivery_info.delivery_address2 }} <br/>
+                City: {{ delivery_info.delivery_city }} <br/>
+                State: {{ delivery_info.delivery_state }} <br/>
+                Zipcode: {{ delivery_info.delivery_zipcode }} <br/>
+                Country: {{ delivery_info.delivery_country }} <br/>
+            <br/>
+                <a href="{% url 'checkout' %}" class="btn btn-outline-primary">Update delivery</a>
+            </div>
+            </div>
+            <br/>
+            <br/>
+            <center>
+                {{ paypal_form.render }}
+            </center>
+            <br/><br/>
+            <div class="card">
+                <div class="card-header">
+                Billing info
+                </div>
+                <div class="card-body">
+                    <form method="POST" action="{% url 'process_order' %}">
+                        {% csrf_token %}
+                        {{ billing_form.as_p }}
+                        <br/>
+                        <button type="submit" class="btn btn-primary">Pay now</button>
+                    </form>
+                    <br/><br/>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 
-</body>
-</html>
+{% endblock %}
