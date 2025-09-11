@@ -141,4 +141,7 @@ def payment_failed(request):
     return render(request,"payment_failed.html", {})
 
 def payment_success(request):
+    for key in list(request.session.keys()):
+        if key == 'session_key':
+            del request.session[key]
     return render(request, "payment_success.html", {})

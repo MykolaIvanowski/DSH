@@ -1,10 +1,58 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-</head>
-<body>
+{% extends 'base.html %}
+{% block content %}
 
-</body>
-</html>
+<header>
+    <div class="container px-4 px-lg-5 my-5">
+        <div class="text-center text-white">
+            <h1 class="display-4 fw-bolder">Billing information</h1>
+            <p class="lead fw-normal text-white-50 mb-0">Enter your payment information</p>
+        </div>
+    </div>
+</header>
+<br/>
+<div class="container">
+    <div class="row">
+        <div class="col-md-6 offset-md-3">
+            <div class="card">
+                <div class="card-header">
+                Order summary
+                </div>
+                <div class="cart-body">
+                    {% for product in cart_products %}
+                        {{ product.name }}:
+                        {% if product.is_sale %}
+                            ${{ product.sale_price }}
+                        {% else %
+                            ${{ product.price }}
+                        {%% endif }
+                    <br/>
+                    <small>Quantity:
+                    {% for key, value in quantities.items %}
+                        {% if key == product.id|slugify %}
+                            {{ value }}
+                        {% endif %}
+                    {% endfor %}
+                    </small>
+                    Totals: {{ totals }}
+                    <br/><br/>
+                    <a href="{% url 'cart_summary' %}" class="btn btn-sm btn-outline-secondary">Update items</a>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-header">
+                Delivery information
+                </div>
+                <div class="card-body">
+                    <form method="POST" action="{% url 'billing_info' %}">
+                        {% csrf_token %}
+                        {{ delivery_form.as_p}}
+                        <br/>
+                        <button type="submit" class="btn btn-primary">Continue to billing</button>
+                    </form>
+                    <br/><br/>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

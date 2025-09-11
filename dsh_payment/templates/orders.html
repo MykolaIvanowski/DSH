@@ -1,10 +1,40 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-</head>
-<body>
-
-</body>
-</html>
+{% extends 'base.html' %}
+{% block content %}
+<div class="container">
+    <div class="row">
+        <center>
+            <div class="col-8">
+                <br/><br/>
+                <div class="card">
+                  <div class="card-header">
+                      order {{ order.id }} - ${{ order.amount_paid }}
+                  </div>
+                    <div class="card-body">
+                        Email: {{ order.email }} <br/>
+                        {% if order.delivered %}
+                        Date delivered: {{ order.date_delivered }}
+                        {% else %}
+                        Date ordered: {{ order.date_ordered }}
+                        {% endif %}<br/><br/>
+                        {{ order.full_name }} <br/>
+                        <pre>
+                            {{ order.delivery_address }}
+                        </pre>
+                        {% for item in items %}
+                            {{ item.product }} - {{ item.quantity }} - {{ item.price }}<br/>
+                        {% endfor %}
+                        <br/><br/>
+                        {% if order.not_delivered %}
+                        <form method="POST">
+                            {% csrf_token %}
+                            <input type="hidden" name="delivery-status" value="false">
+                            <button type="submit" name="btn btn-danger">Mark as not delivered</button>
+                        </form>
+                        {% endif %}
+                    </div>
+                </div><br/><br/><br/>
+            </div>
+        </center>
+    </div>
+</div>
+{% endblock %}
