@@ -1,6 +1,6 @@
 import uuid
 from datetime import datetime
-from statistics import quantiles
+from os import access
 
 from django.shortcuts import render,redirect
 
@@ -43,10 +43,11 @@ def not_delivered_dash(request):
             order.update(deliverd=True, date_delivered = time_now)
             messages.success(request, 'Delivery status updated')
             return redirect('home') #TODO redirect home?
-        return render(request, "not_delivered.html", {"orders":orders})
+        return render(request, "no_delivered_dashboard.html", {"orders":orders})
     else:
         messages.success(request, 'Access denied')
         return redirect('home')
+
 def delivered_dash(request):
     if request.user.is_authenticated and request.user.is_superuser:
         orders = Order.objetcs.filter(delivered = True)
@@ -58,10 +59,11 @@ def delivered_dash(request):
             order.update(delivered = False)
             messages.success(request, 'Delivery status updated')
             return redirect('home') #TODO redirect home?
-        return render(request, "delivered.html",  {"orders":orders})
+        return render(request, "delivered_dashboard.html",  {"orders":orders})
     else:
         messages.success(request, "Access denied")
         return redirect('home')
+
 def process_order(request):
     if request.POST:
         cart = Cart(request)
@@ -101,6 +103,7 @@ def process_order(request):
     else:
         messages.success('Access denied')
         return redirect('home')
+
 def billing_info(request):
     if request.POST:
         cart = Cart(request)
@@ -121,7 +124,7 @@ def billing_info(request):
             'currency_code': 'UDS',
             'notify_url':'http://{}{}'.format(host, reverse('paypal-ipn')),
             'return_url': 'http://{}{}'.format(host, reverse('payment_success')),
-            'cancel_return': 'http://{}{}'.format(host,reverse('payment_faile'))
+            'cancel_return': 'http://{}{}'.format(host,reverse('payment_failed'))
         }
         paypal_form = PayPalPaymentsForm(initial=paypal_dict)
         billing_form = PaymentForm()
@@ -131,12 +134,14 @@ def billing_info(request):
     else:
         messages.success('Access denied')
         return redirect('home') #TODO redirect home?
+
 def checkout(request):
     cart = Cart(request)
     delivery_form = DeliveryForm(request.POST or None)
     return render(request, "checkout.html",
                   {"cart_products":cart.get_products(), "quantities": cart.get_quantities(),
                    "totals":cart.cart_total_products(), "delivering_form":delivery_form})
+
 def payment_failed(request):
     return render(request,"payment_failed.html", {})
 
@@ -145,3 +150,11 @@ def payment_success(request):
         if key == 'session_key':
             del request.session[key]
     return render(request, "payment_success.html", {})
+
+def paypal_success(request):
+    order_id =  request.GET.get('token')
+    access_token = get_access_token()
+    response = request.post(f'https://api-m.sandbox.paypal.com/v2/checkout/orders/{order_id}/capture',
+                            headers = {'Content-Type':'application/json', 'Authorization':f'Bearer {access_token}'})
+    data =response.json()
+    return render(request, "payment_success.html",{})
