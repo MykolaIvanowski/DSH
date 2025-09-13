@@ -1,5 +1,6 @@
 import uuid
 from datetime import datetime
+from os import access
 
 from django.shortcuts import render,redirect
 
@@ -149,3 +150,11 @@ def payment_success(request):
         if key == 'session_key':
             del request.session[key]
     return render(request, "payment_success.html", {})
+
+def paypal_success(request):
+    order_id =  request.GET.get('token')
+    access_token = get_access_token()
+    response = request.post(f'https://api-m.sandbox.paypal.com/v2/checkout/orders/{order_id}/capture',
+                            headers = {'Content-Type':'application/json', 'Authorization':f'Bearer {access_token}'})
+    data =response.json()
+    return render(request, "payment_success.html",{})
