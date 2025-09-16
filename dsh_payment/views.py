@@ -1,16 +1,19 @@
+import json
 import uuid
 from datetime import datetime
-from os import access
 
+from django.http import JsonResponse
 from django.shortcuts import render,redirect
+from requests.auth import HTTPBasicAuth
 
 from dsh_payment.forms import PaymentForm, DeliveryForm
 from dsh_payment.models import Order, OrderItem
 from cart.cart import Cart
 from django.contrib import messages
-from paypal.standard.forms import PayPalPaymentsForm
+#from paypal.standard.forms import PayPalPaymentsForm
 from django.urls import reverse
 from django.conf import settings
+import requests
 
 # Create your views here.
 def orders(request, pk):
@@ -150,6 +153,64 @@ def payment_success(request):
         if key == 'session_key':
             del request.session[key]
     return render(request, "payment_success.html", {})
+
+
+#TODO where to put, I gues settings
+CLIENT_ID = 'your_client_id'
+CLIENT_SECRET = 'your_client_secret'
+
+def get_access_token():
+    url = "https://api-m.sandbox.paypal.com/v1/oauth2/token"
+    headers = {"Accept": "application/json", "Accept-language": "en-US"}
+    data = {"grand_type": "client_credentials"}
+    response = requests.post(url=url, headers=headers,data=data, auth=HTTPBasicAuth(CLIENT_ID, CLIENT_SECRET))
+    return response.json()["access_token"]
+
+def create_order():
+    url = "https://api-m.sandbox.paypal.com/v1/oauth2/token"
+    headers = {"Accept": "application/json", "Accept-language": "en-US"}
+    payload = {
+        "intend" :"CAPTURE",
+        "purchase_units":[{
+            "amount": {
+                "currency_code":"USD",
+                "value":str("amount")
+            }
+        }]
+    }
+    response = requests.post(url=url, headers=headers,json=payload)
+    return response.json()
+
+def billing_view(request):
+    cart = Cart(request)
+    quantity = cart.get_quantities()
+    totals = cart.cart_total_products()
+    cart_products = cart.get_products()
+    if request.method == 'POST':
+        payment_form = PaymentForm(requests or None)
+        if payment_form.is_valid():
+            access_token =  get_access_token()
+            order = create_order(access_token, payment_form.cleaned_data['amount'])
+            approval_url = next(link['href'] for link in order['links'] if link['rel']=='approve')
+            return redirect(approval_url)
+        else:
+            payment_form = PaymentForm()
+            return render(requests, 'billing_info.html',{"cart_products":cart_products,
+                                                         "quantities":quantity,"totals":totals,
+                                                         "delivery_info":requests.POST, "billing_form":payment_form} )
+
+
+def paypal_webhook(request):
+    if request.method == "POST":
+        data = json.loads(request.body)
+        event_type = data.get("event_type")
+        if event_type == "CHECKOUT.ORDER.APPROVED":
+            order_id = data["resource"]["id"]
+            #TODO set or removed
+        elif event_type == "PAYMENT.CAPTURE.COMPLETED":
+            amount = data["resource"]["amount"]["value"]
+            #TODO set to db and
+        return JsonResponse({"status":"received"})
 
 def paypal_success(request):
     order_id =  request.GET.get('token')

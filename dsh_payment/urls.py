@@ -9,5 +9,6 @@ urlpatterns = [
     path('orders/<int:pk>', views.orders, name='orders'),
     path('payment_failed', views.payment_failed, name='payment_failed'),
     path('payment_success', views.payment_success, name='payment_success'),
-    path('process_order', views.process_order, 'process_order')
+    path('process_order', views.process_order, 'process_order',
+    path('paypal/webhook/', views.paypal_webhook, name='paypal_webhook'),)
 ]
