@@ -1,4 +1,4 @@
-{% extends 'base.html %}
+{% extends 'base.html' %}
 {% block content %}
 
 <header>
@@ -22,9 +22,10 @@
                         {{ product.name }}:
                         {% if product.is_sale %}
                             ${{ product.sale_price }}
-                        {% else %
+                        {% else %}
                             ${{ product.price }}
-                        {%% endif }
+                        {% endif %}
+                    {% endfor %}
                     <br/>
                     <small>Quantity:
                     {% for key, value in quantities.items %}
@@ -35,7 +36,7 @@
                     </small>
                     Totals: {{ totals }}
                     <br/><br/>
-                    <a href="{% url 'cart_summary' %}" class="btn btn-sm btn-outline-secondary">Update items</a>
+                    <a href="{% url 'cart' %}" class="btn btn-sm btn-outline-secondary">Update items</a>
                 </div>
             </div>
             <div class="card">
