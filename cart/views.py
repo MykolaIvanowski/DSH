@@ -1,6 +1,3 @@
-from http.client import responses
-from itertools import product
-from json.decoder import JSONObject
 from django.contrib import messages
 from django.http import JsonResponse
 from django.shortcuts import render, get_object_or_404
@@ -18,9 +15,9 @@ def cart_basic(request):
 
 def cart_add(request):
     cart = Cart(request)
-    if request.POSt.get('action') == 'post':
+    if request.POST.get('action') == 'post':
         product_id = int(request.POST.get('product_id'))
-        product_quantities = int(request.POST.get('product_quantities'))
+        product_quantities = int(request.POST.get('product_qty'))
 
         product = get_object_or_404(Product,id = product_id)
         cart.add_product(product=product, quantity=product_quantities)

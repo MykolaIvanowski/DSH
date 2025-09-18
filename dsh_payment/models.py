@@ -15,7 +15,7 @@ class DeliveryAddress(models.Model):
     delivery_address1 = models.CharField(max_length=255)
     delivery_address2 = models.CharField(max_length=255, null=True,blank=True)
     delivery_city = models.CharField(max_length=255)
-    delivery_state = models.CharField(max_length=255, null=True, blanck=True)
+    delivery_state = models.CharField(max_length=255, null=True, blank=True)
     delivery_code = models.CharField(max_length=255, null=True,blank=True)
     delivery_country = models.CharField(max_length=100)
 
@@ -30,7 +30,7 @@ def create_delivery(sender, instance, created, **kwargs):
         user_delivery = DeliveryAddress(user=instance)
         user_delivery.save()
 
-post_save.connect(create_delivery, sendeer=User)
+post_save.connect(create_delivery, sender=User)
 
 class Order(models.Model):
     user=models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
@@ -45,7 +45,7 @@ class Order(models.Model):
     def __str__(self):
         return f'Order - {str(self.id)}'
 
-@receiver(pre_save, sendder=Order)
+@receiver(pre_save, sender=Order)
 def set_delivery_date_on_update(sender, instance,**kwargs):
     if instance.pk:
         time_now = datetime.now()

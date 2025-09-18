@@ -44,6 +44,7 @@
             <br/><br/>
         <a href="{% url 'home'%}" class="btn btn-secondary">Home</a>
         <button type="button" value="{{ product.id }}" class="btn btn-primary" id="add-cart">Add To Cart</button>
+<!--    <button type="button" class="btn btn-primary add-cart-btn" data-product-id="{{ product.id }}">Add To Cart</button>-->
     </center>
       </div>
     </div>
@@ -53,19 +54,20 @@
 <br/><br/><br/><br/><br/>
 
 <script>
-&(document).on('click', '#add-cart', function(e){
+
+$(document).on('click', '#add-cart', function(e){
     e.preventDefault();
     $.ajax({
-        type: 'POST'
+        type: 'POST',
         url: "{% url 'cart_add' %}",
         data:{
             product_id: $('#add-cart').val(),
-            product_qty: $('#qty-cart option selected').text(),
+            product_qty: $('#qty-cart option:selected').text(),
             csrfmiddlewaretoken: '{{ csrf_token }}',
             action: 'post'
             },
             success: function(json){
-            document.getElementById("cart_quantity").textContent = json.qty
+            document.getElementById("#cart_quantity").textContent = json.qty
             location.reload();
             },
             error: function(xhr,errmsg,err){
@@ -73,6 +75,35 @@
             }
         });
     })
+
+<!--    $(document).on('click', '.add-cart-btn', function(e) {-->
+<!--    e.preventDefault();-->
+
+<!--    const productId = $(this).data('product-id');-->
+<!--    const productQty = $('#qty-cart').val(); // або .text() якщо це <select>-->
+<!--    const feedback = $('#cart-feedback');-->
+
+<!--    $.ajax({-->
+<!--        type: 'POST',-->
+<!--        url: "{% url 'cart_add' %}",-->
+<!--        data: {-->
+<!--            product_id: productId,-->
+<!--            product_qty: productQty,-->
+<!--            csrfmiddlewaretoken: '{{ csrf_token }}',-->
+<!--            action: 'post'-->
+<!--        },-->
+<!--        success: function(json) {-->
+
+<!--            $('#cart_quantity').text(json.qty);-->
+
+<!--            feedback.fadeIn(200).delay(1000).fadeOut(400);-->
+<!--        },-->
+<!--        error: function(xhr, errmsg, err) {-->
+<!--            console.error("Помилка при додаванні в кошик:", errmsg);-->
+<!--            feedback.text("Error").css('color', 'red').fadeIn(200).delay(1500).fadeOut(400);-->
+<!--        }-->
+<!--    });-->
+<!--});-->
 </script>
 {% endblock %}
 

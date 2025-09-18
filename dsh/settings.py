@@ -38,7 +38,8 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "app_dsh",
-    "cart"
+    "cart",
+    "dsh_payment"
 ]
 
 MIDDLEWARE = [
