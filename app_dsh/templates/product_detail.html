@@ -22,11 +22,11 @@
             <div class="bi star-fill"></div>
             </div>
               <strike>
-              ${{ product.price }}
+              $ {{ product.price }}
               </strike>
               $ {{ product.sale_price }}
           {{ else }}
-            ${{ product.price }}
+            $ {{ product.price }}
           {% endif %}
           <br/><br/>
 <div class="row justify-content-center">
@@ -67,7 +67,7 @@ $(document).on('click', '#add-cart', function(e){
             action: 'post'
             },
             success: function(json){
-            document.getElementById("#cart_quantity").textContent = json.qty
+            document.getElementById("cart_quantity").textContent = json.qty
             location.reload();
             },
             error: function(xhr,errmsg,err){

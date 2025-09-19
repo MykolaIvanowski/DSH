@@ -23,23 +23,23 @@ class Cart:
 
         self.session.modified = True
 
+    def get_total_quantity(self):
+        return sum(self.cart.values())
+
     def cart_total_products(self):
-        product_ids = self.cart.keys()
+        product_ids = [int(pid) for pid in self.cart.keys()]
         products = Product.objects.filter(id__in=product_ids)
-        quantities = self.cart
+        product_map = {product.id: product for product in products}
+
         total = 0
+        for pid, quantity in self.cart.items():
+            pid = int(pid)
+            product = product_map.get(pid)
+            if product:
+                price = product.sale_price if product.is_sale else product.price
+                total += price * quantity
 
-        for key, value in quantities.items():
-            key = int(key)
-            for product in products:
-                if product.id == key:
-                    if product.is_sale:
-                        total = total +(product.sale_price * value)
-                    else:
-                        total = total  + (product.price * value)
-
-
-        return total
+        return round(total, 2)
 
     def __len__(self):
         return len(self.cart)

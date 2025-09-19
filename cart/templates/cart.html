@@ -86,7 +86,7 @@
 </div>
 
 <script>
-    #update cart
+    //update cart
 
     $(document).on('click', '.update-cart', function(e){
     e.preventDefault();
@@ -111,10 +111,10 @@
 })
 
     $(document).on('click', '.delete-product', function(e){
-        e.reventDefault();
+        e.preventDefault();
 
-        $ajax({
-        type: 'POST'
+        $.ajax({
+        type: 'POST',
         url: '{% url 'cart_delete' %}',
         data: {
             product_id: $(this).data('index'),
@@ -122,6 +122,7 @@
             action: 'post'
         },
         success: function(json){
+            //document.getElementById("#cart_quantity").textContent = json.qty
             location.reload()
         },
         error: function(hxr, errmsg, err){

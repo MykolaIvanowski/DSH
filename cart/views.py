@@ -10,8 +10,8 @@ def cart_basic(request):
     cart_products = cart.get_products
     quantities = cart.get_quantities
     totals = cart.cart_total_products()
-    return render(request, "cart.html",
-                  {'cart_products': cart_products, "cart_quantities": quantities, "totals": totals} )
+    context = {'cart_products': cart_products, "cart_quantities": quantities, "totals": totals}
+    return render(request, "cart.html", context )
 
 def cart_add(request):
     cart = Cart(request)
@@ -51,3 +51,10 @@ def cart_update(request):
         response = JsonResponse({'quantity':product_quantity})
         messages.success(request, ("Your cart has been updated"))
         return response
+
+def cart_status(request):
+    cart = Cart(request)
+    return JsonResponse({
+        'quantity': cart.get_total_quantity(),
+        'total': round(cart.cart_total_products(), 2)
+    })
