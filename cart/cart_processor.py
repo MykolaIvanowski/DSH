@@ -1,4 +1,5 @@
 from .cart import Cart
 
 def cart(request):
-    return { 'cart' : Cart(request)}
+    cart = Cart(request)
+    return { 'cart' : cart, 'cart_total_quantity': cart.get_total_quantity()}
