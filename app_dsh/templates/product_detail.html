@@ -32,7 +32,11 @@
 <div class="row justify-content-center">
     <div class="col-md-2">Quantity:</div>
                 <div class="col-md-2">
-                    <textarea></textarea>
+                    <div class="d-flex justify-content-center align-items-center gap-2" style="width: 150px;">
+                      <button class="btn btn-outline-secondary px-3" onclick="decreaseQty()">−</button>
+                      <input type="text" id="qty_input" class="form-control text-center" value="1" style="width: 50px;">
+                      <button class="btn btn-outline-secondary px-3" onclick="increaseQty()">+</button>
+                    </div>
                 </div>
             </div>
             <br/><br/>
@@ -47,6 +51,16 @@
 <br/><br/><br/><br/><br/>
 
 <script>
+  function decreaseQty() {
+    const input = document.getElementById('qty_input');
+    let value = parseInt(input.value);
+    if (value > 1) input.value = value - 1;
+  }
+
+  function increaseQty() {
+    const input = document.getElementById('qty_input');
+    input.value = parseInt(input.value) + 1;
+  }
 
 $(document).on('click', '#add-cart', function(e){
     e.preventDefault();
@@ -55,7 +69,7 @@ $(document).on('click', '#add-cart', function(e){
         url: "{% url 'cart_add' %}",
         data:{
             product_id: $('#add-cart').val(),
-            product_qty: $('#qty-cart option:selected').text(),
+            product_qty: $('#qty_input').val(),
             csrfmiddlewaretoken: '{{ csrf_token }}',
             action: 'post'
             },
