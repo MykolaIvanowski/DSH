@@ -32,19 +32,12 @@
 <div class="row justify-content-center">
     <div class="col-md-2">Quantity:</div>
                 <div class="col-md-2">
-                <select class="form-select form-select-sm" id="qty-cart">
-                  <option value="1">1</option>
-                  <option value="2">2</option>
-                  <option value="3">3</option>
-                  <option value="4">4</option>
-                  <option value="5">5</option>
-                </select>
+                    <textarea></textarea>
                 </div>
             </div>
             <br/><br/>
         <a href="{% url 'home'%}" class="btn btn-secondary">Home</a>
         <button type="button" value="{{ product.id }}" class="btn btn-primary" id="add-cart">Add To Cart</button>
-<!--    <button type="button" class="btn btn-primary add-cart-btn" data-product-id="{{ product.id }}">Add To Cart</button>-->
     </center>
       </div>
     </div>
@@ -76,34 +69,6 @@ $(document).on('click', '#add-cart', function(e){
         });
     })
 
-<!--    $(document).on('click', '.add-cart-btn', function(e) {-->
-<!--    e.preventDefault();-->
-
-<!--    const productId = $(this).data('product-id');-->
-<!--    const productQty = $('#qty-cart').val(); // або .text() якщо це <select>-->
-<!--    const feedback = $('#cart-feedback');-->
-
-<!--    $.ajax({-->
-<!--        type: 'POST',-->
-<!--        url: "{% url 'cart_add' %}",-->
-<!--        data: {-->
-<!--            product_id: productId,-->
-<!--            product_qty: productQty,-->
-<!--            csrfmiddlewaretoken: '{{ csrf_token }}',-->
-<!--            action: 'post'-->
-<!--        },-->
-<!--        success: function(json) {-->
-
-<!--            $('#cart_quantity').text(json.qty);-->
-
-<!--            feedback.fadeIn(200).delay(1000).fadeOut(400);-->
-<!--        },-->
-<!--        error: function(xhr, errmsg, err) {-->
-<!--            console.error("Помилка при додаванні в кошик:", errmsg);-->
-<!--            feedback.text("Error").css('color', 'red').fadeIn(200).delay(1500).fadeOut(400);-->
-<!--        }-->
-<!--    });-->
-<!--});-->
 </script>
 {% endblock %}
 
