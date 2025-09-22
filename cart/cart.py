@@ -48,7 +48,7 @@ class Cart:
         product_id = str(product.id)
         product_quantity = str(quantity)
         if product_id in self.cart:
-            pass
+            self.cart[product_id] += quantity
         else:
             self.cart[product_id] = int(product_quantity)
 
