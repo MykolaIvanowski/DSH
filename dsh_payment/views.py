@@ -142,7 +142,7 @@ def checkout(request):
     cart = Cart(request)
     delivery_form = DeliveryForm(request.POST or None)
     return render(request, "checkout.html",
-                  {"cart_products":cart.get_products(), "quantities": cart.get_quantities(),
+                  {"cart_products":cart.get_products(), "cart_quantities": cart.get_quantities(),
                    "totals":cart.cart_total_products(), "delivering_form":delivery_form})
 
 def payment_failed(request):
