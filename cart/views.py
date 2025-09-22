@@ -7,8 +7,8 @@ from app_dsh.models import Product
 
 def cart_basic(request):
     cart = Cart(request)
-    cart_products = cart.get_products
-    quantities = cart.get_quantities
+    cart_products = cart.get_products()
+    quantities = cart.get_quantities()
     totals = cart.cart_total_products()
     context = {'cart_products': cart_products, "cart_quantities": quantities, "totals": totals}
     return render(request, "cart.html", context )

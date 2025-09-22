@@ -2,7 +2,7 @@
 
 {% block content %}
 
-<header class="bg dark py-5">
+<header class="bg dark py-5" xmlns="http://www.w3.org/1999/html" xmlns="http://www.w3.org/1999/html">
     <div class="container px-4 px-lg-5 my-5">
         <div class="text-centre text-white">
             <h1 class="display-4 fw-bolder">shopping cart</h1>
@@ -31,35 +31,39 @@
                             &nbsp;&nbsp;Sale!&nbsp;&nbsp;
                             <div class="bi-star-fill"></div>
                             </div>
+                        <span>price per product</span>
                             <strike>
                             ${{ product.price }}
                             </strike>
                             &nbsp;
                             ${{ product.sale_price }}
-
                         {% else %}
+                        <span>price per product</span>
                             ${{ product.price }}
                         {% endif %}
                     <br/><br/>
                         <div class="row justify-content-center">
-                        <div class="col-md-2">Quantity:</div>
-                        <div class="col-md-2">
-                        <select class="form-select form-select-sm" id="select{{ product.id }}">
-                        {% for key, value in quantities.items %}
+                        <div class="row-md-2" >
+                        {% for key, value in cart_quantities.items %}
                             {% if key == product.id|slugify %}
-                            <option selected>{{ value }}</option>
+                                <div class="row-md-2">Quantity products in cart: {{ value }}</div>
+                                {% if product.is_sale %}
+                                    <div class="row-md-2">Price products in cart: {% widthratio value 1 product.sale_price  %}</div>
+                                {% else %}
+                                    <div class="row-md-2">Price products in cart: {% widthratio value 1 product.price  %}</div>
+                                {% endif %}
                             {% endif %}
                         {% endfor %}
-
-
-                  <option value="1">1</option>
-                  <option value="2">2</option>
-                  <option value="3">3</option>
-                  <option value="4">4</option>
-                  <option value="5">5</option>
-                </select>
                 </div>
-            </div>
+                <div class="col-md-2">
+                    <div class="d-flex justify-content-center align-items-center gap-2" style="width: 150px;">
+                      <button class="btn btn-outline-secondary px-3" data-id="{{ product.id }}" onclick="decreaseQty('{{ product.id }}')">−</button>
+                      <input type="text" id="qty_input" data-id="{{ product.id }}" name="product_quantity"
+ class="form-control text-center" value="1" style="width: 50px;">
+                      <button class="btn btn-outline-secondary px-3"  onclick="increaseQty('{{ product.id }}')">+</button>
+                    </div>
+                </div>
+                </div>
             <br/><br/>
         <a href="{% url 'home'%}" class="btn btn-secondary">Home</a>
         <button type="button" data-index="{{product.id}}" class="btn btn-secondary update-cart">Update</button>
@@ -86,19 +90,29 @@
 </div>
 
 <script>
+    function decreaseQty(product_id) {
+    const input = document.querySelector(`input[data-id="${product_id}"]`);
+    let value = parseInt(input.value);
+    if (value > 1) input.value = value - 1;
+  }
+
+    function increaseQty(product_id) {
+    const input = document.querySelector(`input[data-id="${product_id}"]`);
+    input.value = parseInt(input.value) + 1;
+  }
     //update cart
 
     $(document).on('click', '.update-cart', function(e){
     e.preventDefault();
 
     var productid = $(this).data('index');
-
+    var quantity = document.querySelector(`input[data-id="${productid}"]`).value;
     $.ajax({
     type: 'POST',
     url: '{% url 'cart_update' %}',
     data:{
-        product_id: $(this).data('index'),
-        product_quantity: $('#select' + productid + ' option:selected').text(),
+        product_id: productid,
+        product_quantity: quantity,
         csrfmiddlewaretoken: '{{ csrf_token }}',
         action: 'post'
     },
