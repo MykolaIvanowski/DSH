@@ -20,7 +20,7 @@
       <ul class="nav flex-column px-3">
         {% for category in categories %}
           <li class="nav-item">
-            <a class="nav-link" href="{% url 'category' category.name %}">
+            <a class="nav-link" href="{% url 'category' category.id %}">
               {{ category.name }}
             </a>
           </li>
@@ -33,7 +33,11 @@
     <main class="col-12 col-md-9 col-lg-10 px-4">
         <!-- Section-->
         <section class="py-5">
-             <h3>Products </h3>
+            {% if selected_category %}
+                <h6>Products in category {{ selected_category }}</h6>
+                {% else %}
+                <h6>Products </h6>
+            {% endif %}
             <div class="container px-4 px-lg-5 mt-5">
                 <div class="row gx-4 gx-lg-5 row-cols-2 row-cols-md-3 row-cols-xl-4 justify-content-center">
                         {% for product in products %}
