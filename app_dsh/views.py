@@ -14,7 +14,8 @@ def about(request):
 
 def home(request):
     products = Product.objects.all()
-    return render(request,'home.html', {'products': products})
+    categories = Category.objects.all()
+    return render(request,'home.html', {'products': products, 'categories': categories})
 
 
 def login_user(request):
