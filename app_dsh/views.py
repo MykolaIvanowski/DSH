@@ -12,10 +12,17 @@ def about(request):
     return render(request, 'about.html', {})
 
 
-def home(request):
-    products = Product.objects.all()
+def home(request, category_id=None):
+    if category_id:
+        products = Product.objects.filter(category=category_id)
+        category = Category.objects.filter(id=category_id).first()
+        category_name = category.name
+    else:
+        products = Product.objects.all()
+        category_name = ''
     categories = Category.objects.all()
-    return render(request,'home.html', {'products': products, 'categories': categories})
+    return render(request,'home.html', {'products': products, 'categories': categories,
+                                        'selected_category': category_name})
 
 
 def login_user(request):

@@ -22,7 +22,7 @@ class Customer(models.Model):
 class Product(models.Model):
     name = models.CharField(max_length = 255)
     description = models.TextField()
-    article = models.CharField(max_length=30, unique=True,null=True)
+    article = models.CharField(max_length=30, unique=True,blank=True,null=True)
     price = models.DecimalField(max_digits = 10, decimal_places=2)
     stock = models.PositiveIntegerField()
     image = models.ImageField(upload_to='product_images/', blank=True, null=True)
