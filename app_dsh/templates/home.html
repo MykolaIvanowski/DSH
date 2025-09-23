@@ -1,17 +1,39 @@
 {% extends 'base.html' %}
 {% block content %}
-
         <!-- Header-->
-        <header class="bg-dark py-5">
-            <div class="container px-4 px-lg-5 my-5">
-                <div class="text-center text-white">
-                    <h1 class="display-4 fw-bolder">Shop in style</h1>
-                    <p class="lead fw-normal text-white-50 mb-0">With this shop hompeage template</p>
-                </div>
-            </div>
-        </header>
+<header class="bg-dark py-3">
+  <div class="container px-4 px-lg-5 my-3">
+    <div class="text-center text-white">
+      <h1 class="h3 fw-bold">Shop in style</h1>
+      <p class="text-white-50 mb-0">With this shop homepage template</p>
+    </div>
+  </div>
+</header>
+
+<!--leftsidebar-->
+<div class="container-fluid">
+  <div class="row">
+    <!-- Sidebar -->
+    <nav class="col-12 col-md-3 col-lg-2 bg-light border-end min-vh-100">
+<!--        <nav class="col-12 col-md-3 col-lg-2 bg-light border-end"> for leftside bar-->
+      <h5 class="p-3">Category</h5>
+      <ul class="nav flex-column px-3">
+        {% for category in categories %}
+          <li class="nav-item">
+            <a class="nav-link" href="{% url 'category' category.name %}">
+              {{ category.name }}
+            </a>
+          </li>
+        {% empty %}
+          <li class="nav-item text-muted">Empty list</li>
+        {% endfor %}
+      </ul>
+    </nav>
+
+    <main class="col-12 col-md-9 col-lg-10 px-4">
         <!-- Section-->
         <section class="py-5">
+             <h3>Products </h3>
             <div class="container px-4 px-lg-5 mt-5">
                 <div class="row gx-4 gx-lg-5 row-cols-2 row-cols-md-3 row-cols-xl-4 justify-content-center">
                         {% for product in products %}
@@ -60,4 +82,29 @@
                         {% endfor %}
             </div>
         </section>
+
+<!--Pagination-->
+<nav aria-label="Page navigation example">
+  <ul class="pagination">
+    <li class="page-item">
+      <a class="page-link" href="#" aria-label="Previous">
+        <span aria-hidden="true">&laquo;</span>
+      </a>
+    </li>
+    <li class="page-item"><a class="page-link" href="#">1</a></li>
+    <li class="page-item"><a class="page-link" href="#">2</a></li>
+    <li class="page-item"><a class="page-link" href="#">3</a></li>
+    <li class="page-item">
+      <a class="page-link" href="#" aria-label="Next">
+        <span aria-hidden="true">&raquo;</span>
+      </a>
+    </li>
+  </ul>
+</nav>
+
+
+    </main>
+  </div>
+</div>
+
 {% endblock %}

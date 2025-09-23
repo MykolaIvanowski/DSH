@@ -48,9 +48,9 @@
                             {% if key == product.id|slugify %}
                                 <div class="row-md-2">Quantity products in cart: {{ value }}</div>
                                 {% if product.is_sale %}
-                                    <div class="row-md-2">Price products in cart: {% widthratio value 1 product.sale_price  %}</div>
+                                    <div class="row-md-2">Price products in cart: {% widthratio value 1 product.sale_price %}</div>
                                 {% else %}
-                                    <div class="row-md-2">Price products in cart: {% widthratio value 1 product.price  %}</div>
+                                    <div class="row-md-2">Price products in cart: {% widthratio value 1 product.price %}</div>
                                 {% endif %}
                             {% endif %}
                         {% endfor %}
