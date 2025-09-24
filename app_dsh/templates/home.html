@@ -33,10 +33,14 @@
     <main class="col-12 col-md-9 col-lg-10 px-4">
         <!-- Section-->
         <section class="py-5">
-            {% if selected_category %}
-                <h6>Products in category {{ selected_category }}</h6>
-                {% else %}
-                <h6>Products </h6>
+            {% if searched %}
+              <h6>Search results for "{{ searched }}"</h6>
+            {% else %}
+                {% if selected_category %}
+                    <h6>Products in category {{ selected_category }}</h6>
+                    {% else %}
+                    <h6>Products </h6>
+                {% endif %}
             {% endif %}
             <div class="container px-4 px-lg-5 mt-5">
                 <div class="row gx-4 gx-lg-5 row-cols-2 row-cols-md-3 row-cols-xl-4 justify-content-center">
@@ -93,7 +97,9 @@
 
     {% if page_object.has_previous %}
       <li class="page-item">
-        <a class="page-link" href="?page={{ page_object.previous_page_number }}" aria-label="Previous">
+        <a class="page-link"
+           href="?page={{ page_object.previous_page_number }}{% if searched %}&searched={{ searched }}{% endif %}"
+           aria-label="Previous">
           <span aria-hidden="true">&laquo;</span>
         </a>
       </li>
@@ -108,14 +114,17 @@
         {% if num == page_object.number %}
           <li class="page-item active"><span class="page-link">{{ num }}</span></li>
         {% else %}
-          <li class="page-item"><a class="page-link" href="?page={{ num }}">{{ num }}</a></li>
+          <li class="page-item"><a class="page-link"
+                                   href="?page={{ num }}{% if searched %}&searched={{ searched }}{% endif %}">{{ num }}</a></li>
         {% endif %}
       {% endif %}
     {% endfor %}
 
     {% if page_object.has_next %}
       <li class="page-item">
-        <a class="page-link" href="?page={{ page_object.next_page_number }}" aria-label="Next">
+        <a class="page-link"
+           href="?page={{ page_object.next_page_number }}{% if searched %}&searched={{ searched }}{% endif %}"
+           aria-label="Next">
           <span aria-hidden="true">&raquo;</span>
         </a>
       </li>

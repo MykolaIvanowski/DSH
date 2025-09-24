@@ -72,17 +72,42 @@ def product_detail(request, id):
     product = Product.objects.get(id=id)
     return render(request, 'product_detail.html', {'product': product})
 
+# def search(request):
+#     if request.method == 'POST':
+#         searched = request.POST['searched']
+#         searched =Product.objects.filter(Q(name__icontains=searched),Q(description__icontains=searched))
+#         if not searched:
+#             messages.success(request, 'That products does not exist')
+#             return render(request, "home.html", {})
+#         else:
+#             return render(request, 'home.html', {'searched': searched})
+#     else:
+#         return render(request, "home.html",{})
+
+
 def search(request):
-    if request.method == 'POST':
-        searched = request.POST['searched']
-        searched =Product.objects.filter(Q(name__icontains=searched),Q(description__icontains=searched))
-        if not searched:
-            messages.success(request, 'That products does not exist')
-            return render(request, "search.html", {})
-        else:
-            return render(request, 'search.html', {'searched': searched})
-    else:
-        return render(request, "search.html",{})
+    query = request.POST.get('searched') or request.GET.get('searched')
+    products = Product.objects.all()
+
+    if query:
+        products = Product.objects.filter(
+            Q(name__icontains=query) | Q(description__icontains=query)
+        )
+        if not products.exists():
+            messages.warning(request, 'No products found for your search.')
+
+    paginator = Paginator(products, 12)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
+    return render(request, 'home.html', {
+        'products': page_obj.object_list,
+        'page_object': page_obj,
+        'categories': Category.objects.all(),
+        'selected_category': None,
+        'searched': query,
+    })
+
 
 def category_description(request):
     categories = Category.objects.all()
