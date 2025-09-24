@@ -1,7 +1,7 @@
 from django.http import HttpResponse
 from django.shortcuts import render, redirect
 from unicodedata import category
-
+from django.core.paginator import Paginator
 from .models import Product, Category
 from .forms import RegistrationForm
 from django.contrib.auth import authenticate, login, logout
@@ -12,17 +12,19 @@ def about(request):
     return render(request, 'about.html', {})
 
 
-def home(request, category_id=None):
-    if category_id:
-        products = Product.objects.filter(category=category_id)
-        category = Category.objects.filter(id=category_id).first()
-        category_name = category.name
+def home(request, category_name=None):
+    if category_name:
+        category = Category.objects.filter(name=category_name).first()
+        products = Product.objects.filter(category=category.id)
+
     else:
         products = Product.objects.all()
-        category_name = ''
+    paginator = Paginator(products, 12)
+    page_number = request.GET.get('page')
+    page_object = paginator.get_page(page_number)
     categories = Category.objects.all()
-    return render(request,'home.html', {'products': products, 'categories': categories,
-                                        'selected_category': category_name})
+    return render(request,'home.html', {'products': page_object.object_list, 'categories': categories,
+                                        'selected_category': category_name, 'page_object':page_object})
 
 
 def login_user(request):
@@ -70,17 +72,42 @@ def product_detail(request, id):
     product = Product.objects.get(id=id)
     return render(request, 'product_detail.html', {'product': product})
 
+# def search(request):
+#     if request.method == 'POST':
+#         searched = request.POST['searched']
+#         searched =Product.objects.filter(Q(name__icontains=searched),Q(description__icontains=searched))
+#         if not searched:
+#             messages.success(request, 'That products does not exist')
+#             return render(request, "home.html", {})
+#         else:
+#             return render(request, 'home.html', {'searched': searched})
+#     else:
+#         return render(request, "home.html",{})
+
+
 def search(request):
-    if request.method == 'POST':
-        searched = request.POST['searched']
-        searched =Product.objects.filter(Q(name__icontains=searched),Q(description__icontains=searched))
-        if not searched:
-            messages.success(request, 'That products does not exist')
-            return render(request, "search.html", {})
-        else:
-            return render(request, 'search.html', {'searched': searched})
-    else:
-        return render(request, "search.html",{})
+    query = request.POST.get('searched') or request.GET.get('searched')
+    products = Product.objects.all()
+
+    if query:
+        products = Product.objects.filter(
+            Q(name__icontains=query) | Q(description__icontains=query)
+        )
+        if not products.exists():
+            messages.warning(request, 'No products found for your search.')
+
+    paginator = Paginator(products, 12)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
+    return render(request, 'home.html', {
+        'products': page_obj.object_list,
+        'page_object': page_obj,
+        'categories': Category.objects.all(),
+        'selected_category': None,
+        'searched': query,
+    })
+
 
 def category_description(request):
     categories = Category.objects.all()
