@@ -135,3 +135,6 @@ STATICFILES_DIRS = [BASE_DIR/'app_dsh/static/']
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 AUTH_USER_MODEL = 'auth.User'
+
+TIME_ZONE = 'Europe/Dublin'
+USE_TZ = True
