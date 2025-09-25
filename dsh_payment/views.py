@@ -1,13 +1,14 @@
 import json
 import uuid
 from datetime import datetime
+from django.utils import timezone
 
 from django.http import JsonResponse
-from django.shortcuts import render,redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from requests.auth import HTTPBasicAuth
 
 from dsh_payment.forms import PaymentForm, DeliveryForm
-from dsh_payment.models import Order, OrderItem
+from dsh_payment.models import Order, OrderItem, OrderLog
 from cart.cart import Cart
 from django.contrib import messages
 #from paypal.standard.forms import PayPalPaymentsForm
@@ -219,3 +220,54 @@ def paypal_success(request):
                             headers = {'Content-Type':'application/json', 'Authorization':f'Bearer {access_token}'})
     data =response.json()
     return render(request, "payment_success.html",{})
+
+
+def confirm_order_view(request, order_id):
+    order = get_object_or_404(Order, pk=order_id)
+
+    # check avalability for products
+    for item in order.items.all():
+        if item.product.stock < item.quantity:
+            messages.error(request, f"Недостатньо товару: {item.product.name}")
+            return redirect('order_detail', order_id=order.id)
+
+    # update storage
+    for item in order.items.all():
+        item.product.stock -= item.quantity
+        item.product.save()
+
+    # update status
+    order.delivered = True
+    order.date_delivered = timezone.now()
+    order.save()
+
+    # Логування
+    OrderLog.objects.create(order=order, status='delivered', note='Замовлення підтверджено')
+
+    messages.success(request, "Замовлення підтверджено та склад оновлено")
+    return redirect('order_list')
+
+
+def order_dashboard_view(request):
+    status_filter = request.GET.get('status')
+    orders = Order.objects.all()
+
+    if status_filter:
+        orders = orders.filter(status=status_filter)
+
+    return render(request, 'orders/dashboard.html', {'orders': orders})
+
+def update_order_status_view(request, order_id, new_status):
+    order = get_object_or_404(Order, pk=order_id)
+
+    if order.status != new_status:
+        order.status = new_status
+        if new_status == 'delivered':
+            order.date_delivered = timezone.now()
+        order.save()
+
+        OrderLog.objects.create(order=order, status=new_status, note=f'Status changed to {new_status}')
+        messages.success(request, f'Статус замовлення #{order.id} оновлено до {new_status}')
+
+    return redirect('order_dashboard')
+

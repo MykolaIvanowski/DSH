@@ -1,0 +1,41 @@
+<h2>Замовлення</h2>
+
+<form method="get">
+  <select name="status">
+    <option value="">All</option>
+    <option value="created">Wait for call</option>
+    <option value="approved">Approved</option>
+    <option value="shipped">Shipped</option>
+    <option value="delivered">Delivered</option>
+  </select>
+  <button type="submit">Filter</button>
+</form>
+
+<table>
+  <tr>
+    <th>ID</th>
+    <th>Name</th>
+    <th>Phone</th>
+    <th>Status</th>
+    <th>Acting</th>
+  </tr>
+  {% for order in orders %}
+  <tr>
+    <td>{{ order.id }}</td>
+    <td>{{ order.first_name }} {{ order.last_name }}</td>
+    <td>{{ order.phone }}</td>
+    <td>{{ order.get_status_display }}</td>
+    <td>
+      {% if order.status != 'approved' %}
+        <a href="{% url 'update_order_status' order.id 'approved' %}">Mark as approved</a>
+      {% endif %}
+      {% if order.status != 'shipped' %}
+        <a href="{% url 'update_order_status' order.id 'shipped' %}">Mark as shopped</a>
+      {% endif %}
+      {% if order.status != 'delivered' %}
+        <a href="{% url 'update_order_status' order.id 'delivered' %}">Mark as delivered</a>
+      {% endif %}
+    </td>
+  </tr>
+  {% endfor %}
+</table>
