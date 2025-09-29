@@ -1,5 +1,5 @@
 from django import forms
-from dsh_payment.models import DeliveryAddress
+from dsh_payment.models import Order
 
 
 class DeliveryForm(forms.ModelForm):
@@ -21,10 +21,11 @@ class DeliveryForm(forms.ModelForm):
         attrs={'class':'form-control', 'placeholder':'Country'}),required=True)
 
     class Meta:
-        model = DeliveryAddress
-        fields = ['delivery_full_name', 'delivery_email', 'delivery_address1', 'delivery_address2', 'delivery_city',
-                  'delivery_state', 'delivery_zipcode', 'delivery_country']
-        exclude = ['user',]
+        model = Order
+        fields = ['first_name','last_name', 'email', 'phone', 'delivery_street_home', 'delivery_city',
+                  'delivery_state', 'delivery_code', 'delivery_country']
+        exclude = ['date_delivered',] #TODO 'amount_paid', 'status', 'date_ordered'
+
 
 class PaymentForm(forms.ModelForm):
     card_name = forms.CharField(label="", widget=forms.TextInput(
