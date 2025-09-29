@@ -255,7 +255,7 @@ def order_dashboard_view(request):
     if status_filter:
         orders = orders.filter(status=status_filter)
 
-    return render(request, 'orders/dashboard.html', {'orders': orders})
+    return render(request, 'dashboard.html', {'orders': orders})
 
 def update_order_status_view(request, order_id, new_status):
     order = get_object_or_404(Order, pk=order_id)
@@ -267,7 +267,7 @@ def update_order_status_view(request, order_id, new_status):
         order.save()
 
         OrderLog.objects.create(order=order, status=new_status, note=f'Status changed to {new_status}')
-        messages.success(request, f'Статус замовлення #{order.id} оновлено до {new_status}')
+        messages.success(request, f'Order status #{order.id} updated to {new_status}')
 
     return redirect('order_dashboard')
 
