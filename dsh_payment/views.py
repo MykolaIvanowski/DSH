@@ -3,7 +3,7 @@ import uuid
 from datetime import datetime
 from django.utils import timezone
 
-from django.http import JsonResponse
+from django.http import JsonResponse, Http404
 from django.shortcuts import render, redirect, get_object_or_404
 from requests.auth import HTTPBasicAuth
 
@@ -15,6 +15,8 @@ from django.contrib import messages
 from django.urls import reverse
 from django.conf import settings
 import requests
+from django.db.models import Q
+from django.core.paginator import Paginator
 
 # Create your views here.
 def orders(request, pk):
@@ -249,25 +251,50 @@ def confirm_order_view(request, order_id):
 
 
 def order_dashboard_view(request):
-    status_filter = request.GET.get('status')
-    orders = Order.objects.all()
+    if request.user.is_authenticated and request.user.is_superuser:
+        status_filter = request.GET.get('status')
+        search_query = request.GET.get('search')
 
-    if status_filter:
-        orders = orders.filter(status=status_filter)
+        orders = Order.objects.all().order_by('-date_ordered')
 
-    return render(request, 'dashboard.html', {'orders': orders})
+        if status_filter:
+            orders = orders.filter(status=status_filter)
+
+        if search_query:
+            orders = orders.filter(
+                Q(first_name__icontains=search_query) |
+                Q(last_name__icontains=search_query) |
+                Q(email__icontains=search_query) |
+                Q(phone__icontains=search_query)
+            )
+
+        paginator = Paginator(orders, 50)
+        page_number = request.GET.get('page')
+        page_obj = paginator.get_page(page_number)
+
+        return render(request, 'dashboard.html', {
+            'orders': page_obj,
+            'status_filter': status_filter,
+            'search_query': search_query
+        })
+    else:
+        raise Http404('ooops.. resource not found')
 
 def update_order_status_view(request, order_id, new_status):
-    order = get_object_or_404(Order, pk=order_id)
+    if request.user.is_authenticated and request.user.is_superuser:
+        order = get_object_or_404(Order, pk=order_id)
 
-    if order.status != new_status:
-        order.status = new_status
-        if new_status == 'delivered':
-            order.date_delivered = timezone.now()
-        order.save()
+        if order.status != new_status:
+            order.status = new_status
+            if new_status == 'delivered':
+                order.date_delivered = timezone.now()
+            order.save()
 
-        OrderLog.objects.create(order=order, status=new_status, note=f'Status changed to {new_status}')
-        messages.success(request, f'Order status #{order.id} updated to {new_status}')
+            OrderLog.objects.create(order=order, status=new_status, note=f'Status changed to {new_status}')
+            messages.success(request, f'Order status #{order.id} updated to {new_status}')
 
-    return redirect('order_dashboard')
+        return redirect('order_dashboard')
+    else:
+        raise Http404('ooops.. resource not found')
+
 
