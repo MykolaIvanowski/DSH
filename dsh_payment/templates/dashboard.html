@@ -26,7 +26,8 @@
         <select name="status">
             <option value="">All Statuses</option>
             <option value="created" {% if status_filter == 'created' %}selected{% endif %}>Created</option>
-            <option value="processing" {% if status_filter == 'processing' %}selected{% endif %}>Processing</option>
+            <option value="approved" {% if status_filter == 'approved' %}selected{% endif %}>Approved</option>
+            <option value="shipped" {% if status_filter == 'shipped' %}selected{% endif %}>Shipped</option>
             <option value="delivered" {% if status_filter == 'delivered' %}selected{% endif %}>Delivered</option>
         </select>
         <button type="submit">Filter</button>
@@ -64,7 +65,19 @@
             <td>{{ item.phone }}</td>
             <td>{{ item.amount_paid }}</td>
 
-            <td>{{ item.status }}</td>
+            <td>
+                <form method="post">
+                  {% csrf_token %}
+                  <input type="hidden" name="order_id" value="{{ item.id }}">
+                  <select name="status" class="form-select form-select-sm" onchange="this.form.submit()">
+                    <option value="created" {% if item.status == 'created' %}selected{% endif %}>Created</option>
+                    <option value="approved" {% if item.status == 'approved' %}selected{% endif %}>Approved</option>
+                    <option value="shipped" {% if item.status == 'shipped' %}selected{% endif %}>Shipped</option>
+                    <option value="delivered" {% if item.status == 'delivered' %}selected{% endif %}>Delivered</option>
+                  </select>
+                </form>
+            </td>
+
             <td>{{ item.date_ordered }}</td>
             <td>{{ item.date_delivered }}</td>
 
