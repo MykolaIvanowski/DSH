@@ -70,6 +70,10 @@ class OrderItem(models.Model):
         if self.product and self.product.stock < self.quantity:
             raise ValidationError(f"Not enough products: {self.product.name}")
 
+    @property
+    def total(self):
+        return self.quantity * self.price
+
 
 class OrderLog(models.Model):
     order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name='logs')

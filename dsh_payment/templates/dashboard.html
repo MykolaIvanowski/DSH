@@ -57,7 +57,7 @@
         {% for item in orders %}
         <div class="row">
         <tr>
-            <td><a href="{% url 'orders' item.id %}">{{ item.id }}</a></td>
+            <td><a href="{% url 'order_item' item.id %}">{{ item.id }}</a></td>
             <td>{{ item.first_name }}</td>
             <td>{{ item.last_name }}</td>
             <td>{{ item.email }}</td>

@@ -17,12 +17,14 @@ from django.conf import settings
 import requests
 from django.db.models import Q
 from django.core.paginator import Paginator
+from django.shortcuts import get_object_or_404, render
+from .models import OrderItem
 
 # Create your views here.
 def orders(request, pk):
     if request.user.is_authenticated and request.user.is_superuser:
         order = Order.objects.get(id=pk)
-        items = OrderItem.objects.filters(order=pk)
+        items = OrderItem.objects.filter(order=pk)
 
         if request.POST:
             status = request.POST['delivering_status']
@@ -32,7 +34,7 @@ def orders(request, pk):
                 date_now = datetime.now()
                 order.update(delivered = True, date_delivered = date_now)
             else:
-                order = Order.objects.filters(id=pk)
+                order = Order.objects.filter(id=pk)
                 order.update(deliverd=False)
             messages.success('Order status updated')
             return redirect('Home')
@@ -44,7 +46,7 @@ def not_delivered_dash(request):
         if request.POST:
             # status = request.POST['delivered_status']
             num = request.POST['num']
-            order = Order.objects.filters(id=num)
+            order = Order.objects.filter(id=num)
             time_now = datetime.now()
             order.update(deliverd=True, date_delivered = time_now)
             messages.success(request, 'Delivery status updated')
@@ -60,7 +62,7 @@ def delivered_dash(request):
         if request.POST:
             # status = request.POST['delivered_satus']
             num = request.POST['num']
-            order = Order.objects.filters(id=num)
+            order = Order.objects.filter(id=num)
             # time_now = datetime.now()
             order.update(delivered = False)
             messages.success(request, 'Delivery status updated')
@@ -298,3 +300,16 @@ def update_order_status_view(request, order_id, new_status):
         raise Http404('ooops.. resource not found')
 
 
+
+def order_item_view(request, item_id):
+    if request.user.is_authenticated and request.user.is_superuser:
+        item = get_object_or_404(OrderItem, pk=item_id)
+        order = item.order
+        items = order.items.select_related('product').all()
+
+        return render(request, 'order_items.html', {
+            'order': order,
+            'items': items
+        })
+    else:
+        raise Http404('ooops.. resource not found')
