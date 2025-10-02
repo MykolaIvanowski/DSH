@@ -8,10 +8,10 @@ from app_dsh.models import Product
 
 
 STATUS_CHOICES = [
-    ('created', 'Created'),
-    ('approved', 'Approved'),
-    ('shipped', 'Shipped'),
-    ('delivered', 'Delivered'),
+    ('created', 'created'),
+    ('approved', 'approved'),
+    ('shipped', 'shipped'),
+    ('delivered', 'delivered'),
 ]
 
 
@@ -54,7 +54,7 @@ def set_delivery_date_on_update(sender, instance,**kwargs):
     if instance.pk:
         time_now = timezone.now()
         obj  = sender._default_manager.get(pk=instance.pk)
-        if instance.delivered and not obj.delivered:
+        if instance.status == 'delivered' and obj.status != 'delivered':
             instance.date_delivered = time_now
 
 class OrderItem(models.Model):
@@ -69,6 +69,10 @@ class OrderItem(models.Model):
     def clean(self):
         if self.product and self.product.stock < self.quantity:
             raise ValidationError(f"Not enough products: {self.product.name}")
+
+    @property
+    def total(self):
+        return self.quantity * self.price
 
 
 class OrderLog(models.Model):

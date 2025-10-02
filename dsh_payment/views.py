@@ -3,24 +3,29 @@ import uuid
 from datetime import datetime
 from django.utils import timezone
 
-from django.http import JsonResponse
+from django.http import JsonResponse, Http404
 from django.shortcuts import render, redirect, get_object_or_404
 from requests.auth import HTTPBasicAuth
 
 from dsh_payment.forms import PaymentForm, DeliveryForm
-from dsh_payment.models import Order, OrderItem, OrderLog
+from dsh_payment.models import Order, OrderItem, OrderLog, STATUS_CHOICES
 from cart.cart import Cart
 from django.contrib import messages
 #from paypal.standard.forms import PayPalPaymentsForm
 from django.urls import reverse
 from django.conf import settings
 import requests
+from django.views.decorators.http import require_http_methods
+from django.db.models import Q
+from django.core.paginator import Paginator
+from django.shortcuts import get_object_or_404, render
+from .models import OrderItem
 
 # Create your views here.
 def orders(request, pk):
     if request.user.is_authenticated and request.user.is_superuser:
         order = Order.objects.get(id=pk)
-        items = OrderItem.objects.filters(order=pk)
+        items = OrderItem.objects.filter(order=pk)
 
         if request.POST:
             status = request.POST['delivering_status']
@@ -30,7 +35,7 @@ def orders(request, pk):
                 date_now = datetime.now()
                 order.update(delivered = True, date_delivered = date_now)
             else:
-                order = Order.objects.filters(id=pk)
+                order = Order.objects.filter(id=pk)
                 order.update(deliverd=False)
             messages.success('Order status updated')
             return redirect('Home')
@@ -42,7 +47,7 @@ def not_delivered_dash(request):
         if request.POST:
             # status = request.POST['delivered_status']
             num = request.POST['num']
-            order = Order.objects.filters(id=num)
+            order = Order.objects.filter(id=num)
             time_now = datetime.now()
             order.update(deliverd=True, date_delivered = time_now)
             messages.success(request, 'Delivery status updated')
@@ -58,7 +63,7 @@ def delivered_dash(request):
         if request.POST:
             # status = request.POST['delivered_satus']
             num = request.POST['num']
-            order = Order.objects.filters(id=num)
+            order = Order.objects.filter(id=num)
             # time_now = datetime.now()
             order.update(delivered = False)
             messages.success(request, 'Delivery status updated')
@@ -248,26 +253,78 @@ def confirm_order_view(request, order_id):
     return redirect('order_list')
 
 
+@require_http_methods(["GET", "POST"])
 def order_dashboard_view(request):
+    if not (request.user.is_authenticated and request.user.is_superuser):
+        raise Http404('ooops.. resource not found')
+
+    if request.method == "POST":
+        order_id = request.POST.get("order_id")
+        new_status = request.POST.get("status")
+        print(order_id)
+        if order_id and new_status:
+            order = get_object_or_404(Order, pk=order_id)
+            if new_status in dict(STATUS_CHOICES):
+                order.status = new_status
+                order.save()
+                print('Order status updated')
+                return redirect('dashboard')
+
+
     status_filter = request.GET.get('status')
-    orders = Order.objects.all()
+    search_query = request.GET.get('search')
+
+    orders = Order.objects.all().order_by('-date_ordered')
 
     if status_filter:
         orders = orders.filter(status=status_filter)
 
-    return render(request, 'dashboard.html', {'orders': orders})
+    if search_query:
+        orders = orders.filter(
+            Q(first_name__icontains=search_query) |
+            Q(last_name__icontains=search_query) |
+            Q(email__icontains=search_query) |
+            Q(phone__icontains=search_query)
+        )
+
+    paginator = Paginator(orders, 50)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
+    return render(request, 'dashboard.html', {
+        'orders': page_obj,
+        'status_filter': status_filter,
+        'search_query': search_query
+    })
 
 def update_order_status_view(request, order_id, new_status):
-    order = get_object_or_404(Order, pk=order_id)
+    if request.user.is_authenticated and request.user.is_superuser:
+        order = get_object_or_404(Order, pk=order_id)
 
-    if order.status != new_status:
-        order.status = new_status
-        if new_status == 'delivered':
-            order.date_delivered = timezone.now()
-        order.save()
+        if order.status != new_status:
+            order.status = new_status
+            if new_status == 'delivered':
+                order.date_delivered = timezone.now()
+            order.save()
 
-        OrderLog.objects.create(order=order, status=new_status, note=f'Status changed to {new_status}')
-        messages.success(request, f'Order status #{order.id} updated to {new_status}')
+            OrderLog.objects.create(order=order, status=new_status, note=f'Status changed to {new_status}')
+            messages.success(request, f'Order status #{order.id} updated to {new_status}')
 
-    return redirect('order_dashboard')
+        return redirect('order_dashboard')
+    else:
+        raise Http404('ooops.. resource not found')
 
+
+
+def order_item_view(request, item_id):
+    if request.user.is_authenticated and request.user.is_superuser:
+        item = get_object_or_404(OrderItem, pk=item_id)
+        order = item.order
+        items = order.items.select_related('product').all()
+
+        return render(request, 'order_items.html', {
+            'order': order,
+            'items': items
+        })
+    else:
+        raise Http404('ooops.. resource not found')

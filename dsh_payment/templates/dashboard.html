@@ -1,14 +1,114 @@
 {% extends 'base.html' %}
 {% block content %}
-    <tbody>
+
+
+
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Order Dashboard</title>
+    <style>
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { padding: 10px; border: 1px solid #ccc; text-align: left; }
+        th { background-color: #f2f2f2; }
+        .pagination { margin-top: 20px; text-align: center; }
+        .pagination a { margin: 0 5px; text-decoration: none; padding: 5px 10px; border: 1px solid #ccc; }
+        .active-page { background-color: #007bff; color: white; }
+        form { margin-bottom: 20px; }
+    </style>
+</head>
+<body>
+    <h1>Order Dashboard</h1>
+
+    <form method="get">
+        <input type="text" name="search" placeholder="Search by name or date (YYYY-MM-DD)" value="{{ search_query }}">
+        <select name="status">
+            <option value="">All Statuses</option>
+            <option value="created" {% if status_filter == 'created' %}selected{% endif %}>Created</option>
+            <option value="approved" {% if status_filter == 'approved' %}selected{% endif %}>Approved</option>
+            <option value="shipped" {% if status_filter == 'shipped' %}selected{% endif %}>Shipped</option>
+            <option value="delivered" {% if status_filter == 'delivered' %}selected{% endif %}>Delivered</option>
+        </select>
+        <button type="submit">Filter</button>
+    </form>
+
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Lastname</th>
+                <th>Email</th>
+                <th>Phone</th>
+                <th>Amound paid</th>
+                <th>Status</th>
+                <th>Date ordered</th>
+                <th>Date delivered</th>
+                <th>Address</th>
+                <th>City</th>
+                <th>State</th>
+                <th>Zipcode</th>
+                <th>Country</th>
+            </tr>
+        </thead>
+
+
+        <tbody>
         {% for item in orders %}
+        <div class="row">
         <tr>
-            <td><a href="{% url 'orders' item.id %}">{{ item.id }}</a></td>
-            <td>${{ item.amount_paid }}</td>
+            <td><a href="{% url 'order_item' item.id %}">{{ item.id }}</a></td>
+            <td>{{ item.first_name }}</td>
+            <td>{{ item.last_name }}</td>
             <td>{{ item.email }}</td>
+            <td>{{ item.phone }}</td>
+            <td>{{ item.amount_paid }}</td>
+
+            <td>
+                <form method="post">
+                  {% csrf_token %}
+                  <input type="hidden" name="order_id" value="{{ item.id }}">
+                  <select name="status" class="form-select form-select-sm" onchange="this.form.submit()">
+                    <option value="created" {% if item.status == 'created' %}selected{% endif %}>Created</option>
+                    <option value="approved" {% if item.status == 'approved' %}selected{% endif %}>Approved</option>
+                    <option value="shipped" {% if item.status == 'shipped' %}selected{% endif %}>Shipped</option>
+                    <option value="delivered" {% if item.status == 'delivered' %}selected{% endif %}>Delivered</option>
+                  </select>
+                </form>
+            </td>
+
+            <td>{{ item.date_ordered }}</td>
             <td>{{ item.date_delivered }}</td>
-            <td>{{ item.delivered }}</td>
+
+            <td>{{ item.delivery_street_home }}</td>
+            <td>{{ item.delivery_city }}</td>
+            <td>{{ item.delivery_state }}</td>
+            <td>{{ item.delivery_code }}</td>
+            <td>{{ item.delivery_country }}</td>
+
+
         </tr>
+            {% empty %}
+            <tr><td colspan="7">No orders found.</td></tr>
+            </div>
         {% endfor %}
     </tbody>
+    </table>
+
+    <div class="pagination">
+        {% if orders.has_previous %}
+            <a href="?page=1{% if search_query %}&search={{ search_query }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}">First</a>
+            <a href="?page={{ orders.previous_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}">Previous</a>
+        {% endif %}
+
+        <span class="active-page">Page {{ orders.number }} of {{ orders.paginator.num_pages }}</span>
+
+        {% if orders.has_next %}
+            <a href="?page={{ orders.next_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}">Next</a>
+            <a href="?page={{ orders.paginator.num_pages }}{% if search_query %}&search={{ search_query }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}">Last</a>
+        {% endif %}
+    </div>
+</body>
+</html>
 {% endblock %}
