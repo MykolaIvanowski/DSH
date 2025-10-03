@@ -3,14 +3,16 @@ from dsh_payment.models import Order
 
 
 class DeliveryForm(forms.ModelForm):
-    delivery_full_name = forms.CharField(label="",widget=forms.TextInput(
-        attrs={'class':'form-control', 'placeholder':'Full name'}),required=True)
+    delivery_first_name = forms.CharField(label="",widget=forms.TextInput(
+        attrs={'class':'form-control', 'placeholder':'First name'}),required=True)
+    delivery_last_name = forms.CharField(label="",widget=forms.TextInput(
+        attrs={'class':'form-control', 'placeholder':'Last name'}),required=True)
     delivery_email = forms.CharField(label="",widget=forms.TextInput(
-        attrs={'class':'form-control', 'placeholder':'Email'}),required=True)
-    delivery_address1 = forms.CharField(label="",widget=forms.TextInput(
-        attrs={'class':'form-control', 'placeholder':'Delivery address1'}),required=True)
-    delivery_address2 = forms.CharField(label="",widget=forms.TextInput(
-        attrs={'class':'form-control', 'placeholder':'Delivery address2'}),required=False)
+        attrs={'class':'form-control', 'placeholder':'Your email'}),required=True)
+    delivery_phone = forms.CharField(label="",widget=forms.TextInput(
+        attrs={'class':'form-control', 'placeholder':'Your phone'}),required=True)
+    delivery_street_home = forms.CharField(label="",widget=forms.TextInput(
+        attrs={'class':'form-control', 'placeholder':'Delivery address street, home, apartment'}),required=False)
     delivery_city = forms.CharField(label="",widget=forms.TextInput(
         attrs={'class':'form-control', 'placeholder':'City'}),required=True)
     delivery_state = forms.CharField(label="",widget=forms.TextInput(
