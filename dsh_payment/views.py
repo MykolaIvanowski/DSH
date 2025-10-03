@@ -11,7 +11,6 @@ from dsh_payment.forms import PaymentForm, DeliveryForm
 from dsh_payment.models import Order, OrderItem, OrderLog, STATUS_CHOICES
 from cart.cart import Cart
 from django.contrib import messages
-#from paypal.standard.forms import PayPalPaymentsForm
 from django.urls import reverse
 from django.conf import settings
 import requests
@@ -328,3 +327,19 @@ def order_item_view(request, item_id):
         })
     else:
         raise Http404('ooops.. resource not found')
+
+
+def delivery_info_view(request):
+    if request.method == 'POST':
+        form = DeliveryForm(request.POST)
+        if form.is_valid():
+            order = form.save(commit=False)
+            order.status = 'created'
+            order.amount_paid = 0
+
+            order.save()
+            return redirect('payment_success')
+        else:
+            form = DeliveryForm()
+
+        return render(request, 'delivery_info.html', {'delivery_info': form})
