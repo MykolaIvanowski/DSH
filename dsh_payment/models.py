@@ -12,6 +12,7 @@ STATUS_CHOICES = [
     ('approved', 'approved'),
     ('shipped', 'shipped'),
     ('delivered', 'delivered'),
+    ('canceled', 'canceled'),
 ]
 
 

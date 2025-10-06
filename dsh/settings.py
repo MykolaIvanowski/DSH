@@ -138,4 +138,8 @@ AUTH_USER_MODEL = 'auth.User'
 
 TIME_ZONE = 'Europe/Dublin'
 USE_TZ = True
-PAYPAL_RESIVER_EMAIL = 'youremail@email.com'#ToDO hide email
+
+#paypal
+PAYPAL_RECEIVER_EMAIL = 'youremail@email.com'#ToDO hide email
+PAYPAL_CLIENT_ID = 'YOUR ID'
+PAYPAL_SECRET = 'SECRET'

@@ -36,10 +36,11 @@ class Product(models.Model):
 
 class Order(models.Model):
     STATUS_CHOICES=[
-        ('pending', 'Pending'),
-        ('shipped', 'Shipped'),
-        ('delivered', 'Delivered'),
-        ('cancelled', 'Cancelled')
+        ('pending', 'pending'),
+        ('approved', 'approved'),
+        ('shipped', 'shipped'),
+        ('delivered', 'delivered'),
+        ('cancelled', 'cancelled')
     ]
 
     user = models.ForeignKey(Customer, on_delete=models.CASCADE)
