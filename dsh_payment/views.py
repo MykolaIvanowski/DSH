@@ -78,17 +78,40 @@ def process_order(request):
         cart_products = cart.get_products
         quantity = cart.get_quantities
         total = cart.cart_total_products()
+        access_token = get_access_token()
 
+        headers = {'Content-Type': "application/json",
+                   "Authorization": f"Bearer {access_token}"}
+
+        order_payload = {
+            "intent" : "CAPTURE",
+            "purchase_units": [{
+                "amount": {
+                    "currency_code": "EUR",
+                    "value": total
+                }
+            }],
+            "application_context":{
+                "return_url": request.build_absolute_uri("/paypal_success/"),
+                "cancel_url": request.build_absolute_uri("/paypal_cancel/")
+            }
+        }
+        responce = request.post("", headers = headers,json=order_payload )
         payment_form = PaymentForm(request.POST or None)
         my_delivering = request.session.get('my_delivering')
-        full_name = my_delivering['delivery_full_name']
+        first_name = my_delivering['delivery_first_name']
+        last_name = my_delivering['delivery_last_name']
         email = my_delivering['delivery_email']
-        delivery_address = (f'{my_delivering['delivery_address1']}'
-                            f'\n{my_delivering['delivery_address2']}\n{my_delivering['delivery_city']}'
-                            f'\n{my_delivering['delivery_state']}\n{my_delivering['delivery_zipcode']}'
-                            f'\n{my_delivering['delivery_country']}\n')
+        phone = my_delivering['delivery_phone']
+        delivery_address = my_delivering['delivery_address']
+        city = my_delivering['delivery_city']
+        state = my_delivering['delivery_state']
+        zipcode=my_delivering['delivery_zipcode']
+        country = my_delivering['delivery_country']
 
-        create_order = Order(full_name=full_name,email=email, delivery_address=delivery_address, amount_paid=total)
+        create_order = Order(first_name=first_name,last_name=last_name,email=email, phone=phone,
+                             delivery_address=delivery_address, city=city, state=state, zipcode=zipcode,
+                             country=country, amount_paid=total)
         order_id = create_order.pk
 
         for product in  cart_products():
@@ -107,9 +130,14 @@ def process_order(request):
             if key == 'session_key':
                 del request.session[key]
         messages.success(request, 'Order placed')
-        return redirect('home')
+
+        data = responce.json()
+        for link in data.get("links",[]):
+            if link['rel'] == "approve":
+                return redirect(link['href'])
+        return render(request,'payment_success.html', {"error": "Could not create PayPal order."})
     else:
-        messages.success('Access denied')
+        # messages.success('Access denied')
         return redirect('home')
 
 def billing_info(request):
@@ -343,3 +371,4 @@ def delivery_info_view(request):
             form = DeliveryForm()
 
         return render(request, 'delivery_info.html', {'delivery_info': form})
+
