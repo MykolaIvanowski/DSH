@@ -78,7 +78,7 @@ def process_order(request):
         cart_products = cart.get_products
         quantity = cart.get_quantities
         total = cart.cart_total_products()
-        access_token = get_access_token()
+        access_token = get_access_token_mock() # TODO mock!!!
 
         headers = {'Content-Type': "application/json",
                    "Authorization": f"Bearer {access_token}"}
@@ -88,7 +88,7 @@ def process_order(request):
             "purchase_units": [{
                 "amount": {
                     "currency_code": "EUR",
-                    "value": total
+                    "value": str(total)
                 }
             }],
             "application_context":{
@@ -96,7 +96,7 @@ def process_order(request):
                 "cancel_url": request.build_absolute_uri("/paypal_cancel/")
             }
         }
-        responce = request.post("", headers = headers,json=order_payload )
+        responce = requests.post("https://api-m.sandbox.paypal.com/v2/checkout/orders", headers = headers,json=order_payload )
         payment_form = PaymentForm(request.POST or None)
         my_delivering = request.session.get('my_delivering')
         first_name = my_delivering['delivery_first_name']
@@ -194,10 +194,17 @@ CLIENT_SECRET = 'your_client_secret'
 
 def get_access_token():
     url = "https://api-m.sandbox.paypal.com/v1/oauth2/token"
-    headers = {"Accept": "application/json", "Accept-language": "en-US"}
-    data = {"grand_type": "client_credentials"}
+    headers = {
+        "Accept": "application/json",
+        "Accept-language": "en-US",
+        "Content-Type": "application/x-www-form-urlencoded"
+    }
+    data = {"grant_type": "client_credentials"}
     response = requests.post(url=url, headers=headers,data=data, auth=HTTPBasicAuth(CLIENT_ID, CLIENT_SECRET))
-    return response.json()["access_token"]
+    if "access_token" in response.json():
+        return response.json()["access_token"]
+    else:
+        raise ValueError(f"Access token was not found {response}")
 
 def create_order():
     url = "https://api-m.sandbox.paypal.com/v1/oauth2/token"
@@ -214,6 +221,8 @@ def create_order():
     response = requests.post(url=url, headers=headers,json=payload)
     return response.json()
 
+def get_access_token_mock():
+    return "mock_token"
 def billing_view(request):
     cart = Cart(request)
     quantity = cart.get_quantities()
@@ -222,7 +231,7 @@ def billing_view(request):
     if request.method == 'POST':
         payment_form = PaymentForm(requests or None)
         if payment_form.is_valid():
-            access_token =  get_access_token()
+            access_token =  get_access_token_mock()#TODO change to real from mock
             order = create_order(access_token, payment_form.cleaned_data['amount'])
             approval_url = next(link['href'] for link in order['links'] if link['rel']=='approve')
             return redirect(approval_url)
