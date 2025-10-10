@@ -3,30 +3,22 @@ from dsh_payment.models import Order
 
 
 class DeliveryForm(forms.ModelForm):
-    delivery_first_name = forms.CharField(label="",widget=forms.TextInput(
-        attrs={'class':'form-control', 'placeholder':'First name'}),required=True)
-    delivery_last_name = forms.CharField(label="",widget=forms.TextInput(
-        attrs={'class':'form-control', 'placeholder':'Last name'}),required=True)
-    delivery_email = forms.CharField(label="",widget=forms.TextInput(
-        attrs={'class':'form-control', 'placeholder':'Your email'}),required=True)
-    delivery_phone = forms.CharField(label="",widget=forms.TextInput(
-        attrs={'class':'form-control', 'placeholder':'Your phone'}),required=True)
-    delivery_street_home = forms.CharField(label="",widget=forms.TextInput(
-        attrs={'class':'form-control', 'placeholder':'Delivery address street, home, apartment'}),required=False)
-    delivery_city = forms.CharField(label="",widget=forms.TextInput(
-        attrs={'class':'form-control', 'placeholder':'City'}),required=True)
-    delivery_state = forms.CharField(label="",widget=forms.TextInput(
-        attrs={'class':'form-control', 'placeholder':'State'}),required=False)
-    delivery_zipcode = forms.CharField(label="",widget=forms.TextInput(
-        attrs={'class':'form-control', 'placeholder':'Zipcode'}),required=False)
-    delivery_country = forms.CharField(label="",widget=forms.TextInput(
-        attrs={'class':'form-control', 'placeholder':'Country'}),required=True)
+    first_name = forms.CharField(label="", widget=forms.TextInput(attrs={'class':'form-control','placeholder':'First name'}), required=True)
+    last_name = forms.CharField(label="", widget=forms.TextInput(attrs={'class':'form-control','placeholder':'Last name'}), required=True)
+    email = forms.EmailField(label="", widget=forms.EmailInput(attrs={'class':'form-control','placeholder':'Your email'}), required=True)
+    phone = forms.CharField(label="", widget=forms.TextInput(attrs={'class':'form-control','placeholder':'Your phone'}), required=True)
+    street_home = forms.CharField(label="", widget=forms.TextInput(attrs={'class':'form-control','placeholder':'Delivery address street, home, apartment'}), required=True)
+    city = forms.CharField(label="", widget=forms.TextInput(attrs={'class':'form-control','placeholder':'City'}), required=True)
+    state = forms.CharField(label="", widget=forms.TextInput(attrs={'class':'form-control','placeholder':'State'}), required=True)
+    zipcode = forms.CharField(label="", widget=forms.TextInput(attrs={'class':'form-control','placeholder':'Zipcode'}), required=True)
+    country = forms.CharField(label="", widget=forms.TextInput(attrs={'class':'form-control','placeholder':'Country'}), required=False)
 
     class Meta:
         model = Order
-        fields = ['first_name','last_name', 'email', 'phone', 'delivery_street_home', 'delivery_city',
-                  'delivery_state', 'delivery_code', 'delivery_country']
-        exclude = ['date_delivered',] #TODO 'amount_paid', 'status', 'date_ordered'
+        fields = ['first_name','last_name','email','phone','street_home','city','state','zipcode','country']
+
+
+        #exclude = ['date_delivered',] #TODO 'amount_paid', 'status', 'date_ordered'
 
 
 class PaymentForm(forms.Form):
