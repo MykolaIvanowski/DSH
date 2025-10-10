@@ -78,67 +78,103 @@ def process_order(request):
         cart_products = cart.get_products
         quantity = cart.get_quantities
         total = cart.cart_total_products()
-        access_token = get_access_token_mock() # TODO mock!!!
+        print(total)
+        delivery_form = DeliveryForm(request.POST)
+        print(request.POST)
 
-        headers = {'Content-Type': "application/json",
-                   "Authorization": f"Bearer {access_token}"}
+        print( '!!!!!!!!!!!!!!!!!!')
+        action  =  request.POST.get("action")
+        if delivery_form.is_valid():
+            data = delivery_form.cleaned_data
+            request.session['my_delivering'] = data
+            my_delivering = request.session.get('my_delivering')
 
-        order_payload = {
-            "intent" : "CAPTURE",
-            "purchase_units": [{
-                "amount": {
-                    "currency_code": "EUR",
-                    "value": str(total)
+            first_name = my_delivering['first_name']
+            last_name = my_delivering['last_name']
+            email = my_delivering['email']
+            phone = my_delivering['phone']
+            street_home = my_delivering['street_home']
+            city = my_delivering['city']
+            state = my_delivering['state']
+            zipcode=my_delivering['zipcode']
+            country = my_delivering['country']
+
+            if action == "pay_later":
+                order = delivery_form.save(commit=False)
+                order.amount_paid = 0
+                order.save()
+                messages.success(request, 'Order put in progress. Manager call you back')
+                return render(request, "delivery_info.html", {
+                    'delivery_form': delivery_form,
+                    'totals': total
+                })
+            elif action == 'pay_online':
+                access_token = get_access_token_mock() # TODO mock!!!
+
+
+                headers = {'Content-Type': "application/json",
+                           "Authorization": f"Bearer {access_token}"}
+
+                order_payload = {
+                    "intent" : "CAPTURE",
+                    "purchase_units": [{
+                        "amount": {
+                            "currency_code": "EUR",
+                            "value": str(total)
+                        }
+                    }],
+                    "application_context":{
+                        "return_url": request.build_absolute_uri("/paypal_success/"),
+                        "cancel_url": request.build_absolute_uri("/paypal_cancel/")
+                    }
                 }
-            }],
-            "application_context":{
-                "return_url": request.build_absolute_uri("/paypal_success/"),
-                "cancel_url": request.build_absolute_uri("/paypal_cancel/")
-            }
-        }
-        responce = requests.post("https://api-m.sandbox.paypal.com/v2/checkout/orders", headers = headers,json=order_payload )
-        payment_form = PaymentForm(request.POST or None)
-        my_delivering = request.session.get('my_delivering')
-        first_name = my_delivering['delivery_first_name']
-        last_name = my_delivering['delivery_last_name']
-        email = my_delivering['delivery_email']
-        phone = my_delivering['delivery_phone']
-        delivery_address = my_delivering['delivery_address']
-        city = my_delivering['delivery_city']
-        state = my_delivering['delivery_state']
-        zipcode=my_delivering['delivery_zipcode']
-        country = my_delivering['delivery_country']
+                responce = requests.post("https://api-m.sandbox.paypal.com/v2/checkout/orders",
+                                         headers = headers,json=order_payload )
 
-        create_order = Order(first_name=first_name,last_name=last_name,email=email, phone=phone,
-                             delivery_address=delivery_address, city=city, state=state, zipcode=zipcode,
-                             country=country, amount_paid=total)
-        order_id = create_order.pk
+                create_order = Order(first_name=first_name,last_name=last_name,email=email, phone=phone,
+                                     street_home=street_home, city=city, state=state, zipcode=zipcode,
+                                     country=country, amount_paid=total)
+                order_id = create_order.pk
 
-        for product in  cart_products():
-            product_id= product.id
-            if product.is_sale:
-                price = product.sale_price
-            else:
-                price = product.price
+                for product in  cart_products():
+                    product_id= product.id
+                    if product.is_sale:
+                        price = product.sale_price
+                    else:
+                        price = product.price
 
-            for key, value in quantity().items():
-                if int(key) == product.id:
-                    create_order_item = OrderItem(order_id=order_id, product_id=product_id, quantity=value, price=price)
-                    create_order_item.save()
+                    for key, value in quantity().items():
+                        if int(key) == product.id:
+                            create_order_item = OrderItem(order_id=order_id, product_id=product_id, quantity=value, price=price)
+                            create_order_item.save()
 
-        for key in list(request.session.keys()):
-            if key == 'session_key':
-                del request.session[key]
-        messages.success(request, 'Order placed')
+                for key in list(request.session.keys()):
+                    if key == 'session_key':
+                        del request.session[key]
+                messages.success(request, 'Order placed')
 
-        data = responce.json()
-        for link in data.get("links",[]):
-            if link['rel'] == "approve":
-                return redirect(link['href'])
-        return render(request,'payment_success.html', {"error": "Could not create PayPal order."})
+                data = responce.json()
+                for link in data.get("links",[]):
+                    if link['rel'] == "approve":
+                        return redirect(link['href'])
+                return redirect(request,'process_payment.html', {"success": "Could not create PayPal order for now. It is test env."})
+        else:
+            messages.error(request, 'form is not valid')
+
+            return render(request,'delivery_info.html', {
+                'delivery_form': delivery_form,
+                'totals': total
+            })
     else:
         # messages.success('Access denied')
         return redirect('home')
+
+def process_payment(request):
+    form = PaymentForm(request.POST)
+    if form.is_valid():
+        card_date = form.cleaned_data
+        #TODO logic to payment
+        #TODO make webhook work if and update id payment from paypal if success
 
 def billing_info(request):
     if request.POST:
@@ -223,6 +259,8 @@ def create_order():
 
 def get_access_token_mock():
     return "mock_token"
+
+
 def billing_view(request):
     cart = Cart(request)
     quantity = cart.get_quantities()

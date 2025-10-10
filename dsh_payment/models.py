@@ -31,11 +31,11 @@ class Order(models.Model):
     date_ordered = models.DateTimeField(auto_now_add=True)
     date_delivered = models.DateTimeField(blank=True, null=True)
 
-    delivery_street_home = models.CharField(max_length=255)
-    delivery_city = models.CharField(max_length=255)
-    delivery_state = models.CharField(max_length=255, blank=True, null=True)
-    delivery_code = models.CharField(max_length=255, blank=True, null=True)
-    delivery_country = models.CharField(max_length=100)
+    street_home = models.CharField(max_length=255)
+    city = models.CharField(max_length=255)
+    state = models.CharField(max_length=255, blank=True, null=True)
+    zipcode = models.CharField(max_length=255, blank=True, null=True)
+    country = models.CharField(max_length=100)
 
     class Meta:
         ordering = ['-date_ordered']

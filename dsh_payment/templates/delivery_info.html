@@ -19,15 +19,15 @@
                 Delivery info
                 </div>
             <div class="card-body">
-                First name: {{ delivery_info.delivery_first_name }} <br/>
-                Last name: {{ delivery_info.delivery_last_name }} <br/>
-                Email: {{ delivery_info.delivery_email }} <br/>
-                Phone: {{ delivery_info.delivery_phone }} <br/>
-                Address: {{ delivery_info.delivery_street_home }} <br/>
-                City: {{ delivery_info.delivery_city }} <br/>
-                State: {{ delivery_info.delivery_state }} <br/>
-                Zipcode: {{ delivery_info.delivery_zipcode }} <br/>
-                Country: {{ delivery_info.delivery_country }} <br/>
+                First name: {{ delivery_info.first_name }} <br/>
+                Last name: {{ delivery_info.last_name }} <br/>
+                Email: {{ delivery_info.email }} <br/>
+                Phone: {{ delivery_info.phone }} <br/>
+                Address: {{ delivery_info.street_home }} <br/>
+                City: {{ delivery_info.city }} <br/>
+                State: {{ delivery_info.state }} <br/>
+                Zipcode: {{ delivery_info.zipcode }} <br/>
+                Country: {{ delivery_info.country }} <br/>
             <br/>
             </div>
                 <div class="card-body">
@@ -36,25 +36,15 @@
                 <div class="card-body">
                     <form method="POST" action="{% url 'process_order' %}">
                         {% csrf_token %}
-                        {{ billing_form.as_p }}
-                        <br/>
-                        <button type="submit" class="btn btn-primary">Pay now</button>
-                    </form>
-                    <br/><br/>
+                        {{ delivery_form.as_p }}
 
-                    <form method="POST" action="{% url 'process_order' %}">
-                        {% csrf_token %}
-                        {{ billing_form.as_p }}
-                        <br/>
-                        <button type="submit" class="btn btn-primary">Make order, we will call you</button>
+                        <button type="submit" name="action" value="pay_online" class="btn btn-primary">Pay now</button>
+                        <button type="submit" name="action" value="pay_later" class="btn btn-primary">Make order, we will call you</button>
                     </form>
                     <br/><br/>
             </div>
             <br/>
             <br/>
-            <center>
-                {{ paypal_form.render }}
-            </center>
             <br/><br/>
 
             </div>
