@@ -260,7 +260,7 @@ def delivery_info_view(request):
     total = cart.cart_total_products()
 
     if request.method == 'POST':
-        print('post!!!!!!!!!')
+
         form = DeliveryForm(request.POST)
         action = request.POST.get("action")
 
@@ -288,11 +288,7 @@ def delivery_info_view(request):
 
             if action == "pay_later":
                 messages.success(request, 'Order placed. Manager will contact you.')
-                return render(request, 'delivery_info.html', {
-                    'delivery_form': DeliveryForm(),
-                    'delivery_info': order,
-                    'totals': total
-                })
+                return redirect('delivery_info') # TODO redirect to success we will call back
 
             elif action == "pay_online":
                 access_token = get_access_token_mock()
@@ -327,10 +323,7 @@ def delivery_info_view(request):
                         return redirect(link['href'])
 
                 messages.error(request, 'Could not create PayPal order. Test environment.')
-                return render(request, 'delivery_info.html', {
-                    'delivery_form': form,
-                    'totals': total
-                })
+                return redirect('delivery_info') #TODO redirect to payment
 
         else:
             messages.error(request, 'Form is not valid.')
@@ -342,7 +335,7 @@ def delivery_info_view(request):
     # GET-запит — просто рендеримо форму
     form = DeliveryForm()
 
-    return redirect(request, 'delivery_info', {
+    return render(request, 'delivery_info.html', {
         'delivery_form': form,
         'totals': total
     })

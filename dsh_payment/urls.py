@@ -13,5 +13,5 @@ urlpatterns = [
     path('paypal/webhook/', views.paypal_webhook, name='paypal_webhook'),
     path('dashboard', views.order_dashboard_view, name='dashboard'),
     path('order_items/<int:item_id>/', views.order_item_view, name='order_item'),
-    path('delivery_info', views.delivery_info_view, name='delivery_info')
+    path('delivery_info/', views.delivery_info_view, name='delivery_info')
 ]
