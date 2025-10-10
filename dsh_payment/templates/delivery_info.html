@@ -12,29 +12,16 @@
 <div class="container">
     <div class="row">
         <div class="col-md-6 offset-md-3">
-
-            <br/><br/>
             <div class="card">
                 <div class="card-header">
                 Delivery info
                 </div>
-            <div class="card-body">
-                First name: {{ delivery_info.first_name }} <br/>
-                Last name: {{ delivery_info.last_name }} <br/>
-                Email: {{ delivery_info.email }} <br/>
-                Phone: {{ delivery_info.phone }} <br/>
-                Address: {{ delivery_info.street_home }} <br/>
-                City: {{ delivery_info.city }} <br/>
-                State: {{ delivery_info.state }} <br/>
-                Zipcode: {{ delivery_info.zipcode }} <br/>
-                Country: {{ delivery_info.country }} <br/>
-            <br/>
-            </div>
+
                 <div class="card-body">
                 Total: ${{ totals }}
                 </div>
                 <div class="card-body">
-                    <form method="POST" action="{% url 'process_order' %}">
+                    <form method="POST" action="{% url 'delivery_info' %}">
                         {% csrf_token %}
                         {{ delivery_form.as_p }}
 
