@@ -287,8 +287,7 @@ def delivery_info_view(request):
             request.session.pop('session_key', None)
 
             if action == "pay_later":
-                messages.success(request, 'Order placed. Manager will contact you.')
-                return redirect('delivery_info') # TODO redirect to success we will call back
+                return redirect('order_success')
 
             elif action == "pay_online":
                 access_token = get_access_token_mock()
@@ -340,6 +339,8 @@ def delivery_info_view(request):
         'totals': total
     })
 
+def order_success_view(request):
+    return render(request, 'order_success.html')
 
 def process_payment(request):
     form = PaymentForm(request.POST)
