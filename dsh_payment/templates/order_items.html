@@ -45,7 +45,14 @@
               <tr><td colspan="5">No items found.</td></tr>
               {% endfor %}
           </tbody>
+            <tfoot>
+                <tr>
+                    <td colspan="4" class="text-end" style="text-align: right; font-weight: bold;">Total order amount:</td>
+                    <td style="text-align: right; font-weight: bold;" > {{ order_totals|floatformat:2 }} </td>
+                </tr>
+            </tfoot>
       </table>
+
     </div>
 </body>
 </html>

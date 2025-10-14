@@ -181,7 +181,7 @@ def confirm_order_view(request, order_id):
 @require_http_methods(["GET", "POST"])
 def order_dashboard_view(request):
     if not (request.user.is_authenticated and request.user.is_superuser):
-        raise Http404('ooops.. resource not found')
+        raise Http404('Nothing here, resource not found')
 
     if request.method == "POST":
         order_id = request.POST.get("order_id")
@@ -237,22 +237,22 @@ def update_order_status_view(request, order_id, new_status):
 
         return redirect('order_dashboard')
     else:
-        raise Http404('ooops.. resource not found')
+        raise Http404('Nothing here resource not found')
 
 
 
 def order_item_view(request, item_id):
     if request.user.is_authenticated and request.user.is_superuser:
-        item = get_object_or_404(OrderItem, pk=item_id)
-        order = item.order
-        items = order.items.select_related('product').all()
-
+        order = get_object_or_404(Order, id=item_id)
+        items = OrderItem.objects.filter(order=order).select_related('product')
+        oreder_totals = sum(item.quantity * item.price for item in items )
         return render(request, 'order_items.html', {
             'order': order,
-            'items': items
+            'items': items,
+            'order_totals':oreder_totals,
         })
     else:
-        raise Http404('ooops.. resource not found')
+        raise Http404('Nothing here, resource not found')
 
 
 def delivery_info_view(request):

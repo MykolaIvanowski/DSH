@@ -70,10 +70,10 @@
                   {% csrf_token %}
                   <input type="hidden" name="order_id" value="{{ item.id }}">
                   <select name="status" class="form-select form-select-sm" onchange="this.form.submit()">
-                    <option value="created" {% if item.status == 'created' %}selected{% endif %}>Created</option>
-                    <option value="approved" {% if item.status == 'approved' %}selected{% endif %}>Approved</option>
-                    <option value="shipped" {% if item.status == 'shipped' %}selected{% endif %}>Shipped</option>
-                    <option value="delivered" {% if item.status == 'delivered' %}selected{% endif %}>Delivered</option>
+                    <option value="created" {% if item.status == 'created' %} selected {% endif %} >Created</option>
+                    <option value="approved" {% if item.status == 'approved' %} selected {% endif %} >Approved</option>
+                    <option value="shipped" {% if item.status == 'shipped' %} selected {% endif %} >Shipped</option>
+                    <option value="delivered" {% if item.status == 'delivered' %} selected {% endif %} >Delivered</option>
                   </select>
                 </form>
             </td>
@@ -81,11 +81,11 @@
             <td>{{ item.date_ordered }}</td>
             <td>{{ item.date_delivered }}</td>
 
-            <td>{{ item.delivery_street_home }}</td>
-            <td>{{ item.delivery_city }}</td>
-            <td>{{ item.delivery_state }}</td>
-            <td>{{ item.delivery_code }}</td>
-            <td>{{ item.delivery_country }}</td>
+            <td>{{ item.street_home }}</td>
+            <td>{{ item.city }}</td>
+            <td>{{ item.state }}</td>
+            <td>{{ item.zipcode }}</td>
+            <td>{{ item.country }}</td>
 
 
         </tr>
