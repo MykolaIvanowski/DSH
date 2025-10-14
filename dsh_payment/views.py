@@ -1,6 +1,8 @@
 import json
 import uuid
 from datetime import datetime
+from os import access
+
 from django.utils import timezone
 
 from django.http import JsonResponse, Http404
@@ -290,39 +292,7 @@ def delivery_info_view(request):
                 return redirect('order_success')
 
             elif action == "pay_online":
-                access_token = get_access_token_mock()
-                headers = {
-                    'Content-Type': "application/json",
-                    "Authorization": f"Bearer {access_token}"
-                }
-                order_payload = {
-                    "intent": "CAPTURE",
-                    "purchase_units": [{
-                        "amount": {
-                            "currency_code": "EUR",
-                            "value": str(total)
-                        }
-                    }],
-                    "application_context": {
-                        "return_url": request.build_absolute_uri("/paypal_success/"),
-                        "cancel_url": request.build_absolute_uri("/paypal_cancel/")
-                    }
-                }
-
-                response = requests.post(
-                    "https://api-m.sandbox.paypal.com/v2/checkout/orders",
-                    headers=headers,
-                    json=order_payload
-                )
-
-                data = response.json()
-                for link in data.get("links", []):
-                    if link['rel'] == "approve":
-                        messages.success(request, 'Redirecting to PayPal...')
-                        return redirect(link['href'])
-
-                messages.error(request, 'Could not create PayPal order. Test environment.')
-                return redirect('delivery_info') #TODO redirect to payment
+                return redirect('payment_view', order_id=order.id)
 
         else:
             messages.error(request, 'Form is not valid.')
@@ -342,10 +312,36 @@ def delivery_info_view(request):
 def order_success_view(request):
     return render(request, 'order_success.html')
 
-def process_payment(request):
-    form = PaymentForm(request.POST)
-    if form.is_valid():
-        card_date = form.cleaned_data
-        #TODO logic to payment
-        #TODO make webhook work if and update id payment from paypal if success
 
+def payment_paypal_view(request, order_id):
+    order = get_object_or_404(Order, id=order_id)
+    access_token = get_access_token_mock()#TODO mock here
+
+    headers = {
+        'Content-Type': 'application/json',
+        'Authorization' : f'Bearer {access_token}'
+    }
+
+    order_payload = {
+        "intent" : "CAPTURE",
+        "purchase_units":[{
+            "amount": {
+                "currency_code": "EUR",
+                "value" : str(order.amount_paid)
+            }
+        }],
+        "application_content": {
+            "return_url": request.build_absolute_uri("/paypal_success/"),
+            "cancel_url": request.build_absolute_uri("/paypal_cancel/")
+        }
+    }
+    responce = requests.post("https://api-m.sandbox.paypal.com/v2/checkout/orders",
+                            headers=headers, json=order_payload )
+    data = responce.json()
+    for link in data.get("links", []):
+        if link['rel'] == 'aprove':
+            messages.success(request, 'Redirect to Paypal')
+            return redirect(link['href'])
+
+    messages.error(request, "Could not create Paypal order")
+    return redirect('delivery_info')

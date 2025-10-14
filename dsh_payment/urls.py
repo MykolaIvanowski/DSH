@@ -15,4 +15,5 @@ urlpatterns = [
     path('order_items/<int:item_id>/', views.order_item_view, name='order_item'),
     path('delivery_info/', views.delivery_info_view, name='delivery_info'),
     path('order_success/', views.order_success_view, name='order_success'),
+    path('payment/<int:order_id>', views.payment_paypal_view, name = 'payment_view')
 ]
