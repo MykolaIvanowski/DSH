@@ -80,12 +80,7 @@
     <div align="right">
     <h3>Total: ${{ totals }}</h3>
         <div class="card-body d-flex flex-column align-items-right">
-            <form method="POST" action="{% url 'delivery_info' %}">
-                {% csrf_token %}
-                {{ delivery_form.as_p}}
-                <br/>
-                <button type="submit" class="btn btn-success">Ordering</button>
-            </form>
+            <a href="{% url 'delivery_info' %}" class="btn btn-success">Ordering</a>
             <br/><br/>
         </div>
     </div>
