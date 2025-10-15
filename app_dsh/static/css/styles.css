@@ -10824,3 +10824,106 @@ textarea.form-control-lg {
     display: none !important;
   }
 }
+html, body {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+main {
+  flex: 1 0 auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.container-wrapper {
+  flex: 1 0 auto;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 2rem 1rem 3rem;
+  box-sizing: border-box;
+}
+
+.container-wrapper > .container {
+  width: 100%;
+}
+
+footer {
+ margin-top: auto;
+}
+
+.nav-link {
+  transition: font-weight 0.2s ease;
+}
+
+.nav-link:hover {
+  font-weight: bold;
+}
+
+
+
+
+.compact-card {
+  max-width: 500px;
+  font-size: 0.9rem;
+  padding: 0.5rem;
+}
+
+.compact-card img {
+  max-width: 340px;
+  height: auto;
+}
+
+.compact-card .card-title {
+  font-size: 1rem;
+}
+
+.compact-card .cart-text {
+  font-size: 0.85rem;
+}
+/*
+.compact-card .btn {
+  font-size: 0.8rem;
+  padding: 0.25rem 0.5rem;
+}
+*/
+.compact-card input[type="text"] {
+  width: 40px;
+  font-size: 0.8rem;
+  padding: 0.2rem;
+}
+
+
+@media (max-width: 768px) {
+  .compact-card {
+    max-width: 100%;
+    font-size: 0.85rem;
+  }
+
+  .compact-card img {
+    max-width: 100px;
+  }
+}
+
+.image-wrapper-cart {
+  width: 300px;
+  height: 230px;
+  overflow: hidden;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #f8f9fa; /* світлий фон */
+}
+
+.img-fixed-cart {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain; /* або 'cover' для обрізки */
+}

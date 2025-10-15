@@ -2,29 +2,24 @@
 
 {% block content %}
 
-<header class="bg dark py-5" xmlns="http://www.w3.org/1999/html" xmlns="http://www.w3.org/1999/html">
-    <div class="container px-4 px-lg-5 my-5">
-        <div class="text-centre text-white">
-            <h1 class="display-4 fw-bolder">shopping cart</h1>
-            <p class="lead fw-normal text-white-50 mb-0">view your cart</p>
-        </div>
-    </div>
-</header>
+
 <br/>
 <div class="container">
     {% if cart_products %}
         {% for product in cart_products %}
-    <div class="card mb-3">
+    <div class="mb-3 compact-card mx-auto" style="max-width: 900px;">
         <div class="row g-0">
             <div class="col md-4">
-                <img src="{{ product.image.url }}" class="img-fluid rounded-start" alt="">
+                <div class="image-wrapper-cart mx-auto">
+                    <img src="{{ product.image.url }}" class="img-fixed-card rounded-start" alt="">
+                </div>
             </div>
             <div class="col md-8">
                 <div class="card body">
                     <center>
                     <h5 class="card-title">{{ product.name }}</h5>
-                        <br/>
-                        <p class="cart-text justified">{{ product.description }}</p>
+<!--                        <br/>-->
+<!--                        <p class="cart-text justified">{{ product.description }}</p>-->
                         {% if product.is_sale %}
                         <div class="d-flex justify-content-center small text-warning mb-2">
                             <div class="bi-star-fill"></div>
@@ -46,7 +41,7 @@
                         <div class="row-md-2" >
                         {% for key, value in cart_quantities.items %}
                             {% if key == product.id|slugify %}
-                                <div class="row-md-2">Quantity products in cart: {{ value }}</div>
+                                <div class="row-md-2 ">Quantity products in cart: {{ value }}</div>
                                 {% if product.is_sale %}
                                     <div class="row-md-2">Price products in cart: {% widthratio value 1 product.sale_price %}</div>
                                 {% else %}
@@ -55,7 +50,7 @@
                             {% endif %}
                         {% endfor %}
                 </div>
-                <div class="col-md-2">
+                <div class="row-md-2 mt-2">
                     <div class="d-flex justify-content-center align-items-center gap-2" style="width: 150px;">
                       <button class="btn btn-outline-secondary px-3" data-id="{{ product.id }}" onclick="decreaseQty('{{ product.id }}')">−</button>
                       <input type="text" id="qty_input" data-id="{{ product.id }}" name="product_quantity"
@@ -64,11 +59,11 @@
                     </div>
                 </div>
                 </div>
-            <br/><br/>
+        <div class="mt-3 mb-3 ms-3 me-3">
         <a href="{% url 'home'%}" class="btn btn-secondary">Home</a>
         <button type="button" data-index="{{product.id}}" class="btn btn-secondary update-cart">Update</button>
         <button type="button" data-index="{{product.id}}" class="btn btn-danger delete-product">Remove</button>
-
+        </div>
                     </center>
 
             </div>
@@ -79,7 +74,7 @@
     {% endfor %}
     <div align="right">
     <h3>Total: ${{ totals }}</h3>
-        <div class="card-body d-flex flex-column align-items-right">
+        <div class="card-body x-flex flex-column align-items-right">
             <a href="{% url 'delivery_info' %}" class="btn btn-success">Ordering</a>
             <br/><br/>
         </div>
@@ -87,7 +82,8 @@
     <br/><br/><br/>
     {% else %}
     Your cart is empty
-    <br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/>
+
+
 {% endif %}
 </div>
 

@@ -1,10 +1,16 @@
 {% extends 'base.html' %}
 {% block content %}
 
-<div class="container mt-5 text-container">
-  <h2 class="text-success">Your order has been placed</h2>
-  <p class="lead">Our manager will contact you shortly to confirm the details.</p><br/>
-  <a href="{% url 'home' %}" class="btn btn-primary">Hack to homepage</a>
+<div class="container text-center">
+  <div class="row justify-content-center">
+    <div class="col-md-8 col-lg-6">
+      <div class="py-5">
+        <h2 class="text-success">Your order has been placed</h2>
+        <p class="lead">Our manager will contact you shortly to confirm the details.</p>
+        <a href="{% url 'home' %}" class="btn btn-primary">Back to homepage</a>
+      </div>
+    </div>
+  </div>
 </div>
 
 {% endblock %}

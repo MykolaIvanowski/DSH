@@ -20,7 +20,7 @@
       <ul class="nav flex-column px-3">
         {% for category in categories %}
           <li class="nav-item">
-            <a class="nav-link" href="{% url 'category' category.name %}">
+            <a class="nav-link text-dark" href="{% url 'category' category.name %}">
               {{ category.name }}
             </a>
           </li>
