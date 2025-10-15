@@ -1,15 +1,8 @@
 {% extends 'base.html' %}
 {% block content %}
-<header>
-    <div class="container px-4 px-lg-5 my-5">
-        <div class="text-center text-white">
-            <h1 class="display-4 fw-bolder">Billing information</h1>
-            <p class="lead fw-normal text-white-50 mb-0">Enter your payment information</p>
-        </div>
-    </div>
-</header>
+
 <br/>
-<div class="container">
+<div class="container px-4 px-lg-5 mt-3 mb-5">
     <div class="row">
         <div class="col-md-6 offset-md-3">
             <div class="card">
@@ -24,11 +17,11 @@
                     <form method="POST" action="{% url 'delivery_info' %}">
                         {% csrf_token %}
                         {{ delivery_form.as_p }}
-
-                        <button type="submit" name="action" value="pay_online" class="btn btn-primary">Pay now</button>
+                        <br/>
+                        <button type="submit" name="action" value="pay_online" class="btn btn-primary">Pay now</button> <br/><br/>
                         <button type="submit" name="action" value="pay_later" class="btn btn-primary">Make order, we will call you</button>
                     </form>
-                    <br/><br/>
+                    <br/>
             </div>
             <br/>
             <br/>
@@ -38,5 +31,33 @@
         </div>
     </div>
 </div>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const form = document.querySelector('form[action="{% url "delivery_info" %}"]');
 
+    if (form) {
+        form.addEventListener('submit', function (e) {
+            const requiredFields = form.querySelectorAll('input[required], textarea[required], select[required]');
+            let valid = true;
+            let firstInvalid = null;
+
+            requiredFields.forEach(field => {
+                if (!field.value.trim()) {
+                    valid = false;
+                    field.classList.add('is-invalid');
+                    if (!firstInvalid) firstInvalid = field;
+                } else {
+                    field.classList.remove('is-invalid');
+                }
+            });
+
+            if (!valid) {
+                e.preventDefault();
+                alert('Please fill in all required fields.');
+                if (firstInvalid) firstInvalid.focus();
+            }
+        });
+    }
+});
+</script>
 {% endblock %}

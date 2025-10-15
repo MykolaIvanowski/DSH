@@ -1,6 +1,4 @@
-from django.http import HttpResponse
 from django.shortcuts import render, redirect
-from unicodedata import category
 from django.core.paginator import Paginator
 from .models import Product, Category
 from .forms import RegistrationForm
@@ -72,18 +70,6 @@ def product_detail(request, id):
     product = Product.objects.get(id=id)
     return render(request, 'product_detail.html', {'product': product})
 
-# def search(request):
-#     if request.method == 'POST':
-#         searched = request.POST['searched']
-#         searched =Product.objects.filter(Q(name__icontains=searched),Q(description__icontains=searched))
-#         if not searched:
-#             messages.success(request, 'That products does not exist')
-#             return render(request, "home.html", {})
-#         else:
-#             return render(request, 'home.html', {'searched': searched})
-#     else:
-#         return render(request, "home.html",{})
-
 
 def search(request):
     query = request.POST.get('searched') or request.GET.get('searched')
@@ -112,5 +98,6 @@ def search(request):
 def category_description(request):
     categories = Category.objects.all()
     return render(request, 'category_description',{'categories':categories})
+
 def category(request, category_name):
     pass
