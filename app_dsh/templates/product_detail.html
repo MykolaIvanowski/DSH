@@ -2,54 +2,57 @@
 {% block content %}
 <div class="container" xmlns="http://www.w3.org/1999/html">
 <br/>
+<div class="container d-flex justify-content-center">
+    <div class="card mb-3 w-auto" >
+      <div class="row g-0">
+        <div class="col-md-4">
+          <img src="{{ product.image.url }}" class="img-fluid rounded-start" alt="">
+        </div>
+        <div class="col-md-8">
+          <div class="card-body">
+            <center>
+            <h5 class="card-title fw-bold">{{ product.name }}</h5>
+            <br/>
+                <div class="text-centre mx-5">
+            <p class="card-text text-start">{{ product.description }}</p></div>
+                <br/><br/>
+            {% if product.is_sale %}
+                    <div class="d-flex justify-content-center small text-danger mb-2">
+                        SALE!!!
+                    </div>
+                  <strike>
+                  $ {{ product.price }}
+                  </strike>
+                  $ {{ product.sale_price }}
+              {% else %}
+                $ {{ product.price }}
+              {% endif %}
+              <br/><br/>
+                <div class="row justify-content-center text-center">
+                  <div class="col-md-2">Quantity:</div>
 
-<div class="card mb-3">
-  <div class="row g-0">
-    <div class="col-md-4">
-      <img src="{{ product.image.url }}" class="img-fluid rounded-start" alt="">
-    </div>
-    <div class="col-md-8">
-      <div class="card-body">
-        <center>
-        <h5 class="card-title">{{ product.name }}</h5>
-        <br/>
-        <p class="card-text justified">{{ product.description }}</p>
-            <br/><br/>
-        {% if product.is_sale %}
-          <div class="d-flex justify-content-center small text-warning mb-2">
-            <div class="bi star-fill"></div>
-              SALE!!!
-            <div class="bi star-fill"></div>
-            </div>
-              <strike>
-              $ {{ product.price }}
-              </strike>
-              $ {{ product.sale_price }}
-          {% else %}
-            $ {{ product.price }}
-          {% endif %}
-          <br/><br/>
-<div class="row justify-content-center">
-    <div class="col-md-2">Quantity:</div>
-                <div class="col-md-2">
-                    <div class="d-flex justify-content-center align-items-center gap-2" style="width: 150px;">
+                  <div class="col-md-2">
+                    <div class="d-flex justify-content-center align-items-center gap-2" style="width: 100px;">
                       <button class="btn btn-outline-secondary px-3" onclick="decreaseQty()">−</button>
                       <input type="text" id="qty_input" class="form-control text-center" value="1" style="width: 50px;">
                       <button class="btn btn-outline-secondary px-3" onclick="increaseQty()">+</button>
                     </div>
-                </div>
-            </div>
-            <br/><br/>
-        <a href="{% url 'home'%}" class="btn btn-secondary">Home</a>
-        <button type="button" value="{{ product.id }}" class="btn btn-primary" id="add-cart">Add To Cart</button>
-    </center>
-      </div>
-    </div>
-  </div>
-</div>
-</div>
-<br/><br/><br/><br/><br/>
+                  </div>
 
+                  <div class="w-100 my-3"></div>
+                  <div class="col-md-4 d-flex justify-content-center gap-3 ms-3">
+                    <a href="{% url 'home' %}" class="btn btn-secondary">Home</a>
+                    <button type="button" value="{{ product.id }}" class="btn btn-primary" id="add-cart">Add To Cart</button>
+                  </div>
+
+                </div><br>
+        </center>
+          </div>
+        </div>
+        </div>
+        </div>
+    </div>
+</div>
 <script>
   function decreaseQty() {
     const input = document.getElementById('qty_input');

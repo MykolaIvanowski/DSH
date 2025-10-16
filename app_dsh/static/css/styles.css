@@ -10927,3 +10927,8 @@ footer {
   max-height: 100%;
   object-fit: contain; /* або 'cover' для обрізки */
 }
+
+.image-fixed-product {
+  height: 200px;
+  object-fit: cover;
+}
