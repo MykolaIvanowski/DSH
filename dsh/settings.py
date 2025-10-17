@@ -143,3 +143,6 @@ USE_TZ = True
 PAYPAL_RECEIVER_EMAIL = 'youremail@email.com'#ToDO hide email
 PAYPAL_CLIENT_ID = 'YOUR ID'
 PAYPAL_SECRET = 'SECRET'
+
+CLIENT_ID = 'your_client_id'
+CLIENT_SECRET = 'your_client_secret'
