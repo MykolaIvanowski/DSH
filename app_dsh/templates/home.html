@@ -2,7 +2,7 @@
 {% block content %}
         <!-- Header-->
 <header class="bg-dark py-3">
-  <div class="container px-4 px-lg-5 my-3">
+  <div class="container-fluid px-4 px-lg-5 my-3">
     <div class="text-center text-white">
       <h1 class="h3 fw-bold">Shop in style</h1>
       <p class="text-white-50 mb-0">With this shop homepage template</p>
@@ -14,9 +14,16 @@
 <div class="container-fluid">
   <div class="row">
     <!-- Sidebar -->
-    <nav class="col-12 col-md-3 col-lg-2 bg-light border-end min-vh-100">
-<!--        <nav class="col-12 col-md-3 col-lg-2 bg-light border-end"> for leftside bar-->
-      <h5 class="p-3">Category</h5>
+    <!-- Toggle button (поза nav) -->
+    <div class="d-md-none m-2">
+      <button class="btn btn-outline-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#mobileSidebar">
+        Categories
+      </button>
+    </div>
+
+    <!-- Sidebar -->
+    <nav id="mobileSidebar" class="collapse d-md-block col-md-3 col-lg-2 bg-light border-end min-vh-100">
+      <h5 class="p-3">Categories</h5>
       <ul class="nav flex-column px-3">
         {% for category in categories %}
           <li class="nav-item">
@@ -42,8 +49,8 @@
                     <h6>Products </h6>
                 {% endif %}
             {% endif %}
-            <div class="container px-4 px-lg-5 mt-5">
-                <div class="row gx-4 gx-lg-5 row-cols-2 row-cols-md-3 row-cols-xl-4 justify-content-center">
+            <div class="container-fluid px-4 px-lg-5 mt-5">
+                <div class="row gx-4 gx-lg-5 row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-xl-4 justify-content-center">
                         {% for product in products %}
 
                         <div class="col mb-5">
@@ -57,7 +64,7 @@
                                     {% endif %}
                                 <img class="card-img-top image-fixed-product" src="{{ product.image.url }}" alt="..." />
                                 {% else %}
-                                <img class="card-img-top" src="https://dummyimage.com/450x300/dee2e6/6c757d.jpg" alt="..." />
+                                <img class="card-img-top image-fixed-product" src="https://dummyimage.com/450x300/dee2e6/6c757d.jpg" alt="..." />
                                 {% endif %}
                                 <!-- Product details-->
                                 <div class="card-body p-4">
@@ -93,7 +100,7 @@
 
 <!--Pagination-->
 <nav aria-label="Page navigation">
-  <ul class="pagination justify-content-center">
+  <ul class="pagination justify-content-center flex-wrap">
 
     {% if page_object.has_previous %}
       <li class="page-item">

@@ -15,6 +15,13 @@ STATUS_CHOICES = [
     ('canceled', 'canceled'),
 ]
 
+STATUS_PAY_CHOICES = [
+    ('pending','pending'),
+    ('paid','paid'),
+    ('partly_paid', 'partly_paid'),
+    ('rejected', 'rejected'),
+    ('refunded',' refunded')
+]
 
 class Order(models.Model):
     first_name = models.CharField(max_length=255)
@@ -31,11 +38,13 @@ class Order(models.Model):
     date_ordered = models.DateTimeField(auto_now_add=True)
     date_delivered = models.DateTimeField(blank=True, null=True)
 
+    status_pay = models.CharField(max_length=20, choices=STATUS_PAY_CHOICES, default='pending')
+
     street_home = models.CharField(max_length=255)
     city = models.CharField(max_length=255)
     state = models.CharField(max_length=255, blank=True, null=True)
     zipcode = models.CharField(max_length=255, blank=True, null=True)
-    country = models.CharField(max_length=100)
+    country = models.CharField(max_length=100, blank=True, null=True)
 
     class Meta:
         ordering = ['-date_ordered']
@@ -79,6 +88,8 @@ class OrderItem(models.Model):
 class OrderLog(models.Model):
     order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name='logs')
     status = models.CharField(max_length=50, choices=STATUS_CHOICES)
+    status_pay = models.CharField(max_length=30, choices=STATUS_PAY_CHOICES, blank=True, null=True)
+    amount_paid = models.DecimalField(max_digits=7, decimal_places=2, blank=True, null=True)
     status_time = models.DateTimeField(auto_now=True)
     note = models.TextField(blank=True)
 
@@ -88,4 +99,31 @@ class OrderLog(models.Model):
 @receiver(post_save, sender=Order)
 def log_order_created(sender, instance, created, **kwargs):
     if created:
-        OrderLog.objects.create(order=instance, status='created', note='Order created')
+        OrderLog.objects.create(order=instance,
+                                status='created',
+                                status_pay = instance.status_pay if instance.status_pay else None,
+                                amount_paid = instance.amount_paid if instance.amount_paid else None,
+                                note='Order created')
+
+
+@receiver(pre_save,sender=Order)
+def log_order_status_change(sender, instance, **kwargs):
+    if not instance.pk:
+        return
+    try:
+        previous = Order.objects.get(pk=instance.pk)
+    except Order.DoesNotExist:
+        return
+
+    if previous.status != instance.status:
+        OrderLog.objects.create( order=instance, status= instance.status,
+                                 note=f"Status changed from {previous.status} to {instance.status}")
+
+    if previous.status_pay != instance.status_pay:
+        OrderLog.objects.create(order=instance, status_pay = instance.status_pay,
+                                note=f"Status pay cjange from {previous.status_pay} to {instance.status_pay}")
+
+    if previous.amount_paid != instance.amount_paid:
+        OrderLog.objects.create(order=instance,amount_paid=instance.amount_paid,
+                                note=f"Amount pay changed from {previous.amount_paid} to {instance.amount_paid}")
+
