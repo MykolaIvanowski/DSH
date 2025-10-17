@@ -1,13 +1,8 @@
-from tkinter.font import names
-
-from django.urls import path, include
+from django.urls import path
 from . import views
 
 urlpatterns = [
     path('checkout', views.checkout, name='checkout'),
-    path('delivered_dashboard', views.delivered_dash, name='delivered_dashboard'),
-    path('no_delivered_dashboard', views.not_delivered_dash, name='no_delivered_dashboard'),
-    path('orders/<int:pk>', views.orders, name='orders'),
     path('payment_failed', views.payment_failed, name='payment_failed'),
     path('payment_success', views.payment_success, name='payment_success'),
     path('paypal/webhook/', views.paypal_webhook, name='paypal_webhook'),

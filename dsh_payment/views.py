@@ -1,82 +1,22 @@
 import json
-import uuid
-from datetime import datetime
-from os import access
+import requests
 
 from django.utils import timezone
-
 from django.http import JsonResponse, Http404
 from django.shortcuts import render, redirect, get_object_or_404
 from requests.auth import HTTPBasicAuth
-
-from dsh_payment.forms import PaymentForm, DeliveryForm
+from dsh.settings import CLIENT_ID, CLIENT_SECRET
+from dsh_payment.forms import DeliveryForm
 from dsh_payment.models import Order, OrderItem, OrderLog, STATUS_CHOICES
 from cart.cart import Cart
 from django.contrib import messages
-from django.urls import reverse
-from django.conf import settings
-import requests
 from django.views.decorators.http import require_http_methods
 from django.db.models import Q
 from django.core.paginator import Paginator
-from django.shortcuts import get_object_or_404, render
-from .models import OrderItem
-
-# Create your views here.
-def orders(request, pk):
-    if request.user.is_authenticated and request.user.is_superuser:
-        order = Order.objects.get(id=pk)
-        items = OrderItem.objects.filter(order=pk)
-
-        if request.POST:
-            status = request.POST['delivering_status']
-
-            if status =='true':
-                order = Order.objects.filter(order=pk)
-                date_now = datetime.now()
-                order.update(delivered = True, date_delivered = date_now)
-            else:
-                order = Order.objects.filter(id=pk)
-                order.update(deliverd=False)
-            messages.success('Order status updated')
-            return redirect('Home')
-        return render(request, 'orders.html', {'order': order, 'items': items})
-
-def not_delivered_dash(request):
-    if request.user.is_authenticated and request.user.is_superuser:
-        orders = Order.objects.filter(delivered=False)
-        if request.POST:
-            # status = request.POST['delivered_status']
-            num = request.POST['num']
-            order = Order.objects.filter(id=num)
-            time_now = datetime.now()
-            order.update(deliverd=True, date_delivered = time_now)
-            messages.success(request, 'Delivery status updated')
-            return redirect('home') #TODO redirect home?
-        return render(request, "no_delivered_dashboard.html", {"orders":orders})
-    else:
-        messages.success(request, 'Access denied')
-        return redirect('home')
-
-def delivered_dash(request):
-    if request.user.is_authenticated and request.user.is_superuser:
-        orders = Order.objetcs.filter(delivered = True)
-        if request.POST:
-            # status = request.POST['delivered_satus']
-            num = request.POST['num']
-            order = Order.objects.filter(id=num)
-            # time_now = datetime.now()
-            order.update(delivered = False)
-            messages.success(request, 'Delivery status updated')
-            return redirect('home') #TODO redirect home?
-        return render(request, "delivered_dashboard.html",  {"orders":orders})
-    else:
-        messages.success(request, "Access denied")
-        return redirect('home')
 
 
 
-
+#TODO could be  with payment form on payment view
 def checkout(request):
     cart = Cart(request)
     delivery_form = DeliveryForm(request.POST or None)
@@ -84,8 +24,10 @@ def checkout(request):
                   {"cart_products":cart.get_products(), "cart_quantities": cart.get_quantities(),
                    "totals":cart.cart_total_products(), "delivering_form":delivery_form})
 
+
 def payment_failed(request):
     return render(request,"payment_failed.html", {})
+
 
 def payment_success(request):
     for key in list(request.session.keys()):
@@ -94,9 +36,9 @@ def payment_success(request):
     return render(request, "payment_success.html", {})
 
 
-#TODO where to put, I gues settings
-CLIENT_ID = 'your_client_id'
-CLIENT_SECRET = 'your_client_secret'
+def get_access_token_mock():
+    return "mock_token"
+
 
 def get_access_token():
     url = "https://api-m.sandbox.paypal.com/v1/oauth2/token"
@@ -112,24 +54,6 @@ def get_access_token():
     else:
         raise ValueError(f"Access token was not found {response}")
 
-def create_order():
-    url = "https://api-m.sandbox.paypal.com/v1/oauth2/token"
-    headers = {"Accept": "application/json", "Accept-language": "en-US"}
-    payload = {
-        "intend" :"CAPTURE",
-        "purchase_units":[{
-            "amount": {
-                "currency_code":"USD",
-                "value":str("amount")
-            }
-        }]
-    }
-    response = requests.post(url=url, headers=headers,json=payload)
-    return response.json()
-
-def get_access_token_mock():
-    return "mock_token"
-
 
 def paypal_webhook(request):
     if request.method == "POST":
@@ -143,19 +67,20 @@ def paypal_webhook(request):
             #TODO set to db and
         return JsonResponse({"status":"received"})
 
+
 def paypal_success(request):
     order_id =  request.GET.get('token')
     access_token = get_access_token()
     response = request.post(f'https://api-m.sandbox.paypal.com/v2/checkout/orders/{order_id}/capture',
                             headers = {'Content-Type':'application/json', 'Authorization':f'Bearer {access_token}'})
-    data =response.json()
+    data = response.json()
     return render(request, "payment_success.html",{})
 
 
 def confirm_order_view(request, order_id):
     order = get_object_or_404(Order, pk=order_id)
 
-    # check avalability for products
+    # check availability for products
     for item in order.items.all():
         if item.product.stock < item.quantity:
             messages.error(request, f"Not enough products: {item.product.name}")
@@ -171,10 +96,10 @@ def confirm_order_view(request, order_id):
     order.date_delivered = timezone.now()
     order.save()
 
-    # Логування
-    OrderLog.objects.create(order=order, status='delivered', note='Замовлення підтверджено')
+    # logining
+    OrderLog.objects.create(order=order, status='delivered', note='Order confirmed')
 
-    messages.success(request, "Замовлення підтверджено та склад оновлено")
+    messages.success(request, "Order confirmed and stock updated")
     return redirect('order_list')
 
 
@@ -186,13 +111,12 @@ def order_dashboard_view(request):
     if request.method == "POST":
         order_id = request.POST.get("order_id")
         new_status = request.POST.get("status")
-        print(order_id)
+
         if order_id and new_status:
             order = get_object_or_404(Order, pk=order_id)
             if new_status in dict(STATUS_CHOICES):
                 order.status = new_status
                 order.save()
-                print('Order status updated')
                 return redirect('dashboard')
 
 
@@ -272,7 +196,7 @@ def delivery_info_view(request):
             order.amount_paid = 0 if action == "pay_later" else total
             order.save()
 
-            # Зберігаємо позиції замовлення
+            # save order position
             for product in cart_products:
                 product_id = product.id
                 price = product.sale_price if product.is_sale else product.price
@@ -285,7 +209,7 @@ def delivery_info_view(request):
                     price=price
                 )
 
-            # Очищення сесії
+            # clear session
             request.session.pop('session_key', None)
 
             if action == "pay_later":
@@ -301,7 +225,7 @@ def delivery_info_view(request):
                 'totals': total
             })
 
-    # GET-запит — просто рендеримо форму
+    # GET render form
     form = DeliveryForm()
 
     return render(request, 'delivery_info.html', {
