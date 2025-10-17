@@ -44,7 +44,7 @@ class Order(models.Model):
     city = models.CharField(max_length=255)
     state = models.CharField(max_length=255, blank=True, null=True)
     zipcode = models.CharField(max_length=255, blank=True, null=True)
-    country = models.CharField(max_length=100)
+    country = models.CharField(max_length=100, blank=True, null=True)
 
     class Meta:
         ordering = ['-date_ordered']
