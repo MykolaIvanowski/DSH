@@ -10942,3 +10942,35 @@ footer {
   min-width: 60px;
   text-align: center;
 }
+
+.image-frame {
+  height: 100%;
+  width: 100%;
+  border: 1px solid #dee2e6;
+  border-radius: 0.5rem;
+  background-color: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.image-frame img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+
+.description-wrapper {
+  word-break: break-word;
+  hyphens: auto;
+  line-height: 1.5;
+  font-size: 1rem;
+}
+
+@media (max-width: 576px) {
+  .description-wrapper {
+    font-size: 0.95rem;
+    line-height: 1.4;
+  }
+}
