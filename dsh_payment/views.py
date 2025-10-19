@@ -263,7 +263,7 @@ def payment_paypal_view(request, order_id):
                             headers=headers, json=order_payload )
     data = responce.json()
     for link in data.get("links", []):
-        if link['rel'] == 'aprove':
+        if link['rel'] == 'approve':
             messages.success(request, 'Redirect to Paypal')
             return redirect(link['href'])
 

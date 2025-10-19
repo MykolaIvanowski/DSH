@@ -76,11 +76,11 @@
                                         <div class="d-flex justify-content-center small text-danger mb-2">
                                             SALE!!!
                                         </div>
-                                       <strike> {{ product.price }} $</strike>
+                                       <strike>€ {{ product.price }} $</strike>
                                     <!-- Product price-->
-                                        {{ product.sale_price}}
+                                        € {{ product.sale_price}}
                                         {% else %}
-                                        {{ product.price }}
+                                        € {{ product.price }}
                                         {% endif %}
                                     </div>
                                 </div>

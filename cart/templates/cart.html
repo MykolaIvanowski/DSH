@@ -26,13 +26,13 @@
                             </div>
                         <span>price per product</span>
                             <strike>
-                            ${{ product.price }}
+                            €{{ product.price }}
                             </strike>
                             &nbsp;
-                            ${{ product.sale_price }}
+                            €{{ product.sale_price }}
                         {% else %}
                         <span>price per product</span>
-                            ${{ product.price }}
+                            €{{ product.price }}
                         {% endif %}
                     <br/><br/>
                         <div class="row justify-content-center">
@@ -71,7 +71,7 @@
 
     {% endfor %}
     <div align="right">
-    <h3>Total: ${{ totals }}</h3>
+    <h3>Total: €{{ totals }}</h3>
         <div class="card-body x-flex flex-column align-items-right">
             <a href="{% url 'delivery_info' %}" class="btn btn-success">Ordering</a>
             <br/><br/>
