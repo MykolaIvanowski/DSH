@@ -17,7 +17,6 @@ class Product(models.Model):
     article = models.CharField(max_length=30, unique=True,blank=True,null=True)
     price = models.DecimalField(max_digits = 10, decimal_places=2)
     stock = models.PositiveIntegerField(default=0)
-    allow_backorder = models.BooleanField(default=False)
     image = models.ImageField(upload_to='product_images/', blank=True, null=True)
     is_sale = models.BooleanField(default=False)
     sale_price  = models.DecimalField(default=0, decimal_places=2, max_digits=6)

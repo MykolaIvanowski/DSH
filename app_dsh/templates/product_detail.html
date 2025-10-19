@@ -48,13 +48,13 @@
                       <button class="btn btn-outline-secondary px-3" onclick="increaseQty()">+</button>
                     </div>
                   </div>
-                    {% if product.stock < 4 and not product.allow_backorder %}
+                    {% if product.stock < 4 %}
                     <div class="col-md-2 mx-4">In stock: {{ product.stock }}</div>
                     {% endif %}
                   <div class="w-100 my-3"></div>
                   <div class="col-md-4 x-flex justify-content-center gap-3 ms-3">
                     <a href="{% url 'home' %}" class="btn btn-secondary">Home</a>
-                      {% if product.stock > 0 or product.allow_backorder %}
+                      {% if product.stock > 0 %}
                     <button type="button" value="{{ product.id }}" class="btn btn-primary" id="add-cart">Add To Cart</button>
                         {% else %}
                         <button type="button" value="{{ product.id }}" class="btn btn-secondary" disabled>Not available</button>

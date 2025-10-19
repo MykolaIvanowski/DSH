@@ -225,80 +225,120 @@ def order_success_view(request):
 @transaction.atomic
 def payment_paypal_view(request, order_id):
     order = get_object_or_404(Order, id=order_id)
+
     for item in order.items.all():
         product = Product.objects.select_for_update().get(id=item.product.id)
-        if product.stock < item.quantity and not product.allow_backorder:
-            messages.error(request, 'Not enough stock')
+
+        if item.quantity > product.stock:
+            messages.error(request, f"Not enough stock for {product.name}")
             return redirect('cart')
+
         product.stock -= item.quantity
         product.save()
-    access_token = get_access_token()
 
+    access_token = get_access_token()
     headers = {
         'Content-Type': 'application/json',
-        'Authorization' : f'Bearer {access_token}'
+        'Authorization': f'Bearer {access_token}'
     }
 
     order_payload = {
-        "intent" : "CAPTURE",
-        "purchase_units":[{
+        "intent": "CAPTURE",
+        "purchase_units": [{
             "amount": {
                 "currency_code": "EUR",
-                "value" : str(order.amount_paid)
+                "value": str(order.amount_paid)
             }
         }],
-        "application_content": {
+        "application_context": {
             "return_url": request.build_absolute_uri("/payment_success/"),
             "cancel_url": request.build_absolute_uri("/payment_cancel/")
         }
     }
-    responce = requests.post("https://api-m.sandbox.paypal.com/v2/checkout/orders",
-                            headers=headers, json=order_payload )
-    data = responce.json()
+
+    response = requests.post(
+        "https://api-m.sandbox.paypal.com/v2/checkout/orders",
+        headers=headers,
+        json=order_payload
+    )
+    data = response.json()
+
+    order.paypal_order_id = data.get("id")
+    order.status = 'approved'
+    order.save()
+
     for link in data.get("links", []):
         if link['rel'] == 'approve':
-            messages.success(request, 'Redirect to Paypal')
+            messages.success(request, 'Redirecting to PayPal...')
             return redirect(link['href'])
 
-    messages.error(request, "Could not create Paypal order")
+    messages.error(request, "Could not create PayPal order")
     return redirect('delivery_info')
 
 
 @transaction.atomic
 def payment_failed(request):
     order = get_order_from_session_or_db(request)
-    if order.status == 'pending':
+    if order and order.status == 'approved' and order.status_pay == 'pending':
         for item in order.items.all():
             product = Product.objects.select_for_update().get(id=item.product.id)
             product.stock += item.quantity
             product.save()
-        order.status = 'failed'
+
+        order.status = 'canceled'
+        order.status_pay = 'rejected'
         order.save()
-        messages.warning(request, 'Payment was canceled. item return to stock')
-    return render(request,"payment_failed.html", {})
+
+        messages.warning(request, 'Payment was canceled. Items returned to stock.')
+    return render(request, "payment_failed.html", {})
 
 
+@transaction.atomic
 def payment_success(request):
-    order = get_order_from_session_or_db(request)
+    paypal_order_id = request.GET.get('token')
+    if not paypal_order_id:
+        messages.error(request, 'Missing PayPal token.')
+        return redirect('cart_view')
+
+    try:
+        order = Order.objects.get(paypal_order_id=paypal_order_id)
+    except Order.DoesNotExist:
+        messages.error(request, 'Order not found.')
+        return redirect('cart_view')
+
     if not verify_paypal_capture(order):
         for item in order.items.all():
-            product = item.product
+            product = Product.objects.select_for_update().get(id=item.product.id)
             product.stock += item.quantity
             product.save()
-        messages.error(request,'Payment failed')
-        return redirect('cart_view')
-    order_id =  request.GET.get('token')
-    access_token = get_access_token()
-    response = requests.post(f'https://api-m.sandbox.paypal.com/v2/checkout/orders/{order_id}/capture',
-                            headers = {'Content-Type':'application/json', 'Authorization':f'Bearer {access_token}'})
-    data = response.json()
-    if data.get('status') == 'COMPLETE':
-        order.status = 'paid'
+
+        order.status = 'canceled'
+        order.status_pay = 'rejected'
         order.save()
-        messages.success(request, 'Payment completed successfully')
+
+        messages.error(request, 'Payment verification failed. Items returned to stock.')
+        return redirect('cart_view')
+
+    access_token = get_access_token()
+    headers = {
+        'Content-Type': 'application/json',
+        'Authorization': f'Bearer {access_token}'
+    }
+
+    capture_url = f'https://api-m.sandbox.paypal.com/v2/checkout/orders/{paypal_order_id}/capture'
+    response = requests.post(capture_url, headers=headers)
+    data = response.json()
+
+    if data.get('status') == 'COMPLETED':
+        order.status = 'approved'
+        order.status_pay = 'paid'
+        order.save()
+        messages.success(request, 'Payment completed successfully.')
     else:
-        messages.error(request, f'Capture failed: {data.get('status')}')
-    return render(request, "payment_success.html",{})
+        messages.error(request, f"Capture failed: {data.get('status')}")
+        return redirect('cart_view')
+
+    return render(request, "payment_success.html", {})
 
 
 def get_order_from_session_or_db(request):
@@ -306,27 +346,25 @@ def get_order_from_session_or_db(request):
     if order_id:
         try:
             return Order.objects.get(id=order_id)
-        except:
+        except Order.DoesNotExist:
             pass
+    return None
 
 
 def verify_paypal_capture(order):
     access_token = get_access_token()
-
     headers = {
-        'Content-Type':'application/json',
+        'Content-Type': 'application/json',
         'Authorization': f'Bearer {access_token}'
     }
-    paypal_order_id = order.paypal_order_id
 
-    url = f'https://api-m.sandbox.paypal.com/v2/checkout/orders/{paypal_order_id}'
+    url = f'https://api-m.sandbox.paypal.com/v2/checkout/orders/{order.paypal_order_id}'
 
-    try :
-        response = requests.get(url, headers= headers)
+    try:
+        response = requests.get(url, headers=headers)
         data = response.json()
         return data.get('status') == 'COMPLETED'
-    except Exception as e :
-
+    except Exception as e:
+        # логування помилки бажано додати
         return False
-
 
