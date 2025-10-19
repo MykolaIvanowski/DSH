@@ -27,7 +27,7 @@ class PaymentForm(forms.Form):
     card_number = forms.CharField(label="", widget=forms.TextInput(
         attrs={'class': 'form-control', 'placeholder': 'Card number'}), required=True)
     card_expired_date = forms.CharField(label="", widget=forms.TextInput(
-        attrs={'class': 'form-control', 'placeholder': 'Expiration date'}), required=True)
+        attrs={'class': 'form-control', 'placeholder': 'Expiration date (MM/YY)'}), required=True)
     card_cvv_number = forms.CharField(label="", widget=forms.TextInput(
         attrs={'class': 'form-control', 'placeholder': 'CVV code'}), required=True)
 
