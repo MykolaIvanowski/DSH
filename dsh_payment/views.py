@@ -115,46 +115,48 @@ def confirm_order_view(request, order_id):
 
 @require_http_methods(["GET", "POST"])
 def order_dashboard_view(request):
-    if not (request.user.is_authenticated and request.user.is_superuser):
+    if request.user.is_authenticated and request.user.is_superuser:
+
+        if request.method == "POST":
+            order_id = request.POST.get("order_id")
+            new_status = request.POST.get("status")
+
+            if order_id and new_status:
+                order = get_object_or_404(Order, pk=order_id)
+                if new_status in dict(STATUS_CHOICES):
+                    order.status = new_status
+                    order.save()
+                    return redirect('dashboard')
+
+
+        status_filter = request.GET.get('status')
+        search_query = request.GET.get('search')
+
+        orders = Order.objects.all().order_by('-date_ordered')
+
+        if status_filter:
+            orders = orders.filter(status=status_filter)
+
+        if search_query:
+            orders = orders.filter(
+                Q(first_name__icontains=search_query) |
+                Q(last_name__icontains=search_query) |
+                Q(email__icontains=search_query) |
+                Q(phone__icontains=search_query)
+            )
+
+        paginator = Paginator(orders, 50)
+        page_number = request.GET.get('page')
+        page_obj = paginator.get_page(page_number)
+
+        return render(request, 'dashboard.html', {
+            'orders': page_obj,
+            'status_filter': status_filter,
+            'search_query': search_query
+        })
+    else:
         raise Http404('Nothing here, resource not found')
 
-    if request.method == "POST":
-        order_id = request.POST.get("order_id")
-        new_status = request.POST.get("status")
-
-        if order_id and new_status:
-            order = get_object_or_404(Order, pk=order_id)
-            if new_status in dict(STATUS_CHOICES):
-                order.status = new_status
-                order.save()
-                return redirect('dashboard')
-
-
-    status_filter = request.GET.get('status')
-    search_query = request.GET.get('search')
-
-    orders = Order.objects.all().order_by('-date_ordered')
-
-    if status_filter:
-        orders = orders.filter(status=status_filter)
-
-    if search_query:
-        orders = orders.filter(
-            Q(first_name__icontains=search_query) |
-            Q(last_name__icontains=search_query) |
-            Q(email__icontains=search_query) |
-            Q(phone__icontains=search_query)
-        )
-
-    paginator = Paginator(orders, 50)
-    page_number = request.GET.get('page')
-    page_obj = paginator.get_page(page_number)
-
-    return render(request, 'dashboard.html', {
-        'orders': page_obj,
-        'status_filter': status_filter,
-        'search_query': search_query
-    })
 
 def update_order_status_view(request, order_id, new_status):
     if request.user.is_authenticated and request.user.is_superuser:
