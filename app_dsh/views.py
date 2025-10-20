@@ -50,24 +50,6 @@ def logout_user(request):
         messages.success(request,'You have been logout')
     return redirect('home')
 
-def register_user(request):
-    form = RegistrationForm()
-    if request.method == "POST":
-        form = RegistrationForm(request.POST)
-        if form.is_valid():
-            form.save()
-            username = form.cleaned_data('username')
-            password = form.cleaned_data('password1')
-            user = authenticate(username=username, password=password)
-            login(request, user)
-            messages.success(request, ("Username created - please filed out of you user info below"))
-            return redirect('updated_info')
-        else:
-            messages.success(request, ("Whoops there was a problem registration, please try again..."))
-            return redirect('register')
-    else:
-        return render(request, 'register.html', {'form':form})
-
 
 def product_detail(request, id):
     product = Product.objects.get(id=id)
