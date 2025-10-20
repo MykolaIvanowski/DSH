@@ -23,15 +23,6 @@ from django.core.paginator import Paginator
 logger = logging.getLogger(__name__)
 
 
-#TODO could be  with payment form on payment view
-def checkout(request):
-    cart = Cart(request)
-    delivery_form = DeliveryForm(request.POST or None)
-    return render(request, "checkout.html",
-                  {"cart_products":cart.get_products(), "cart_quantities": cart.get_quantities(),
-                   "totals":cart.cart_total_products(), "delivering_form":delivery_form})
-
-
 def get_access_token():
     url = "https://api-m.sandbox.paypal.com/v1/oauth2/token"
     headers = {
@@ -45,6 +36,8 @@ def get_access_token():
         return response.json()["access_token"]
     else:
         raise ValueError(f"Access token was not found {response}")
+
+
 def log_order_change(order, *, status=None, status_pay=None,amount_paid=None, note=''):
     OrderLog.objects.create(
         order=order,

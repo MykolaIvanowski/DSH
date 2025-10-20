@@ -39,7 +39,7 @@ def login_user(request):
             messages.success(request, 'You have been login')
             return render(request, 'login.html',{})
         else:
-            messages.success(request,'There was an error')
+            messages.error(request,'Invalid username or password')
             return redirect('login')
     else:
         return render(request, 'login.html', {'error':'invalid credential'})
@@ -78,11 +78,3 @@ def search(request):
         'selected_category': None,
         'searched': query,
     })
-
-
-def category_description(request):
-    categories = Category.objects.all()
-    return render(request, 'category_description',{'categories':categories})
-
-def category(request, category_name):
-    pass
