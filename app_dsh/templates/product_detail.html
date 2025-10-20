@@ -7,7 +7,11 @@
       <div class="row g-0">
         <div class="col-md-4 d-flex align-items-stretch">
           <div class="image-frame w-100">
-            <img src="{{ product.image.url }}" alt="{{ product.name }}">
+              {% if product.image and product.image.name %}
+                <img src="{{ product.image.url }}" alt="{{ product.name }}">
+              {% else %}
+                <img src="https://dummyimage.com/450x300/dee2e6/6c757d.jpg" alt="No image available">
+              {% endif %}
           </div>
         </div>
         <div class="col-md-8">

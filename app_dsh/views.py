@@ -45,8 +45,9 @@ def login_user(request):
         return render(request, 'login.html', {'error':'invalid credential'})
 
 def logout_user(request):
-    logout(request)
-    messages.success(request,'You have been logout')
+    if not (request.user.is_authenticated and request.user.is_superuser):
+        logout(request)
+        messages.success(request,'You have been logout')
     return redirect('home')
 
 def register_user(request):
