@@ -1,10 +1,12 @@
 import json
 import requests
+import logging
 from django.db import transaction
 
 from django.utils import timezone
 from django.http import JsonResponse, Http404
 from django.shortcuts import render, redirect, get_object_or_404
+from django.views.decorators.csrf import csrf_exempt
 from requests.auth import HTTPBasicAuth
 
 from app_dsh.models import Product
@@ -18,6 +20,8 @@ from django.db.models import Q
 from django.core.paginator import Paginator
 
 
+logger = logging.getLogger(__name__)
+
 
 #TODO could be  with payment form on payment view
 def checkout(request):
@@ -26,10 +30,6 @@ def checkout(request):
     return render(request, "checkout.html",
                   {"cart_products":cart.get_products(), "cart_quantities": cart.get_quantities(),
                    "totals":cart.cart_total_products(), "delivering_form":delivery_form})
-
-
-def get_access_token_mock():
-    return "mock_token"
 
 
 def get_access_token():
@@ -45,19 +45,53 @@ def get_access_token():
         return response.json()["access_token"]
     else:
         raise ValueError(f"Access token was not found {response}")
+def log_order_change(order, *, status=None, status_pay=None,amount_paid=None, note=''):
+    OrderLog.objects.create(
+        order=order,
+        status=status or order.status,
+        status_pay=status_pay or order.status_pay,
+        amount_paid=amount_paid or order.amount_paid,
+        note=note
+    )
 
-
+@csrf_exempt
 def paypal_webhook(request):
-    if request.method == "POST":
+    if request.method != "POST":
+        return JsonResponse({"error": "Invalid method"}, status=405)
+
+    try:
         data = json.loads(request.body)
         event_type = data.get("event_type")
+
         if event_type == "CHECKOUT.ORDER.APPROVED":
             order_id = data["resource"]["id"]
-            #TODO set or removed
+            try:
+                order = Order.objects.get(paypal_order_id=order_id)
+                order.status = 'approved'
+                order.save()
+                log_order_change(order, note='Webhook: CHECKOUT.ORDER.APPROVED')
+            except Order.DoesNotExist:
+                logger.warning(f"Webhook: Order {order_id} not found")
+
         elif event_type == "PAYMENT.CAPTURE.COMPLETED":
+            order_id = data["resource"]["supplementary_data"]["related_ids"]["order_id"]
             amount = data["resource"]["amount"]["value"]
-            #TODO set to db and
-        return JsonResponse({"status":"received"})
+
+            try:
+                order = Order.objects.get(paypal_order_id=order_id)
+                if order.status_pay != 'paid':
+                    order.status_pay = 'paid'
+                    order.amount_paid = amount
+                    order.save()
+                    log_order_change(order, amount_paid=amount, note='Webhook: PAYMENT.CAPTURE.COMPLETED')
+            except Order.DoesNotExist:
+                logger.warning(f"Webhook: Order {order_id} not found")
+
+        return JsonResponse({"status": "received"})
+
+    except Exception as e:
+        logger.exception(f"Webhook error: {e}")
+        return JsonResponse({"error": "Webhook processing failed"}, status=500)
 
 
 def confirm_order_view(request, order_id):
@@ -365,6 +399,6 @@ def verify_paypal_capture(order):
         data = response.json()
         return data.get('status') == 'COMPLETED'
     except Exception as e:
-        # логування помилки бажано додати
+        logger.exception(f'Error: {e}')
         return False
 

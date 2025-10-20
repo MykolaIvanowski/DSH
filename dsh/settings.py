@@ -10,6 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.2/ref/settings/
 """
 import os
+import sys
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -146,3 +147,33 @@ PAYPAL_SECRET = 'SECRET'
 
 CLIENT_ID = 'your_client_id'
 CLIENT_SECRET = 'your_client_secret'
+
+
+# logging
+import sys
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+            'stream': sys.stdout,  # або sys.stderr
+        },
+    },
+    'root': {
+        'handlers': ['console'],
+        'level': 'WARNING',  # або 'INFO', 'DEBUG'
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['console'],
+            'level': 'INFO',
+            'propagate': True,
+        },
+        '__main__': {
+            'handlers': ['console'],
+            'level': 'DEBUG',
+        },
+    },
+}

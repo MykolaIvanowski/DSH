@@ -11,7 +11,6 @@ urlpatterns = [
     path("home/", views.home, name="home"),
     path("login/", views.login_user, name='login'),
     path("logout/", views.logout_user, name='logout'),
-    path("register/", views.register_user, name='register'),
     path("product/<int:id>", views.product_detail, name='product_detail'),
     path("category_description/", views.category, name='category_description'),
     path("category/<str:category_name>/", views.home, name='category'),
