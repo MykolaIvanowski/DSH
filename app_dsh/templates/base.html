@@ -59,10 +59,23 @@ document.addEventListener('DOMContentLoaded', function () {
 </script>
     <script>
         window.addEventListener('pageshow', function (event) {
-    if (event.persisted || window.performance.navigation.type === 2) {
-        window.location.reload();
-    }
-});
+            if (event.persisted) {
+                // повторно оновити корзину
+                fetch('/cart/status/')
+                    .then(response => response.json())
+                    .then(data => {
+                        const quantityBadge = document.getElementById('cart_quantity');
+                        if (quantityBadge) {
+                            quantityBadge.textContent = data.quantity;
+                        }
+
+                        const totalDisplay = document.getElementById('cart_total');
+                        if (totalDisplay) {
+                            totalDisplay.textContent = '€' + parseFloat(data.total).toFixed(2);
+                        }
+                    });
+            }
+        });
     </script>
     </body>
 </html>
