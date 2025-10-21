@@ -18,8 +18,13 @@
                         {% csrf_token %}
                         {{ delivery_form.as_p }}
                         <br/>
+                        {% if totals > 0 %}
                         <button type="submit" name="action" value="pay_online" class="btn btn-primary">Pay now</button> <br/><br/>
                         <button type="submit" name="action" value="pay_later" class="btn btn-primary">Make order, we will call you</button>
+                        {% else %}
+                        <button class="btn btn-secondary" disabled>Cart is empty</button> <br/><br/>
+                        <button class="btn btn-secondary" disabled>Cart is empty</button>
+                        {% endif %}
                     </form>
                     <br/>
             </div>

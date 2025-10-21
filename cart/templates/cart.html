@@ -18,21 +18,19 @@
                 <div class="card body">
                     <center>
                     <h5 class="card-title">{{ product.name }}</h5>
-<!--                        <br/>-->
-<!--                        <p class="cart-text justified">{{ product.description }}</p>-->
                         {% if product.is_sale %}
                             <div class="d-flex justify-content-center small text-danger mb-2">
                                 SALE!!!
                             </div>
                         <span>price per product</span>
                             <strike>
-                            €{{ product.price }}
+                            € {{ product.price }}
                             </strike>
                             &nbsp;
-                            €{{ product.sale_price }}
+                            € {{ product.sale_price }}
                         {% else %}
                         <span>price per product</span>
-                            €{{ product.price }}
+                            € {{ product.price }}
                         {% endif %}
                     <br/><br/>
                         <div class="row justify-content-center">

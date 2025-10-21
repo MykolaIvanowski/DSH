@@ -1,10 +1,15 @@
 import json
 import requests
+import logging
+from django.db import transaction
 
 from django.utils import timezone
 from django.http import JsonResponse, Http404
 from django.shortcuts import render, redirect, get_object_or_404
+from django.views.decorators.csrf import csrf_exempt
 from requests.auth import HTTPBasicAuth
+
+from app_dsh.models import Product
 from dsh.settings import CLIENT_ID, CLIENT_SECRET
 from dsh_payment.forms import DeliveryForm
 from dsh_payment.models import Order, OrderItem, OrderLog, STATUS_CHOICES
@@ -15,29 +20,7 @@ from django.db.models import Q
 from django.core.paginator import Paginator
 
 
-
-#TODO could be  with payment form on payment view
-def checkout(request):
-    cart = Cart(request)
-    delivery_form = DeliveryForm(request.POST or None)
-    return render(request, "checkout.html",
-                  {"cart_products":cart.get_products(), "cart_quantities": cart.get_quantities(),
-                   "totals":cart.cart_total_products(), "delivering_form":delivery_form})
-
-
-def payment_failed(request):
-    return render(request,"payment_failed.html", {})
-
-
-def payment_success(request):
-    for key in list(request.session.keys()):
-        if key == 'session_key':
-            del request.session[key]
-    return render(request, "payment_success.html", {})
-
-
-def get_access_token_mock():
-    return "mock_token"
+logger = logging.getLogger(__name__)
 
 
 def get_access_token():
@@ -55,26 +38,53 @@ def get_access_token():
         raise ValueError(f"Access token was not found {response}")
 
 
+def log_order_change(order, *, status=None, status_pay=None,amount_paid=None, note=''):
+    OrderLog.objects.create(
+        order=order,
+        status=status or order.status,
+        status_pay=status_pay or order.status_pay,
+        amount_paid=amount_paid or order.amount_paid,
+        note=note
+    )
+
+@csrf_exempt
 def paypal_webhook(request):
-    if request.method == "POST":
+    if request.method != "POST":
+        return JsonResponse({"error": "Invalid method"}, status=405)
+
+    try:
         data = json.loads(request.body)
         event_type = data.get("event_type")
+
         if event_type == "CHECKOUT.ORDER.APPROVED":
             order_id = data["resource"]["id"]
-            #TODO set or removed
+            try:
+                order = Order.objects.get(paypal_order_id=order_id)
+                order.status = 'approved'
+                order.save()
+                log_order_change(order, note='Webhook: CHECKOUT.ORDER.APPROVED')
+            except Order.DoesNotExist:
+                logger.warning(f"Webhook: Order {order_id} not found")
+
         elif event_type == "PAYMENT.CAPTURE.COMPLETED":
+            order_id = data["resource"]["supplementary_data"]["related_ids"]["order_id"]
             amount = data["resource"]["amount"]["value"]
-            #TODO set to db and
-        return JsonResponse({"status":"received"})
 
+            try:
+                order = Order.objects.get(paypal_order_id=order_id)
+                if order.status_pay != 'paid':
+                    order.status_pay = 'paid'
+                    order.amount_paid = amount
+                    order.save()
+                    log_order_change(order, amount_paid=amount, note='Webhook: PAYMENT.CAPTURE.COMPLETED')
+            except Order.DoesNotExist:
+                logger.warning(f"Webhook: Order {order_id} not found")
 
-def paypal_success(request):
-    order_id =  request.GET.get('token')
-    access_token = get_access_token()
-    response = request.post(f'https://api-m.sandbox.paypal.com/v2/checkout/orders/{order_id}/capture',
-                            headers = {'Content-Type':'application/json', 'Authorization':f'Bearer {access_token}'})
-    data = response.json()
-    return render(request, "payment_success.html",{})
+        return JsonResponse({"status": "received"})
+
+    except Exception as e:
+        logger.exception(f"Webhook error: {e}")
+        return JsonResponse({"error": "Webhook processing failed"}, status=500)
 
 
 def confirm_order_view(request, order_id):
@@ -105,46 +115,48 @@ def confirm_order_view(request, order_id):
 
 @require_http_methods(["GET", "POST"])
 def order_dashboard_view(request):
-    if not (request.user.is_authenticated and request.user.is_superuser):
+    if request.user.is_authenticated and request.user.is_superuser:
+
+        if request.method == "POST":
+            order_id = request.POST.get("order_id")
+            new_status = request.POST.get("status")
+
+            if order_id and new_status:
+                order = get_object_or_404(Order, pk=order_id)
+                if new_status in dict(STATUS_CHOICES):
+                    order.status = new_status
+                    order.save()
+                    return redirect('dashboard')
+
+
+        status_filter = request.GET.get('status')
+        search_query = request.GET.get('search')
+
+        orders = Order.objects.all().order_by('-date_ordered')
+
+        if status_filter:
+            orders = orders.filter(status=status_filter)
+
+        if search_query:
+            orders = orders.filter(
+                Q(first_name__icontains=search_query) |
+                Q(last_name__icontains=search_query) |
+                Q(email__icontains=search_query) |
+                Q(phone__icontains=search_query)
+            )
+
+        paginator = Paginator(orders, 50)
+        page_number = request.GET.get('page')
+        page_obj = paginator.get_page(page_number)
+
+        return render(request, 'dashboard.html', {
+            'orders': page_obj,
+            'status_filter': status_filter,
+            'search_query': search_query
+        })
+    else:
         raise Http404('Nothing here, resource not found')
 
-    if request.method == "POST":
-        order_id = request.POST.get("order_id")
-        new_status = request.POST.get("status")
-
-        if order_id and new_status:
-            order = get_object_or_404(Order, pk=order_id)
-            if new_status in dict(STATUS_CHOICES):
-                order.status = new_status
-                order.save()
-                return redirect('dashboard')
-
-
-    status_filter = request.GET.get('status')
-    search_query = request.GET.get('search')
-
-    orders = Order.objects.all().order_by('-date_ordered')
-
-    if status_filter:
-        orders = orders.filter(status=status_filter)
-
-    if search_query:
-        orders = orders.filter(
-            Q(first_name__icontains=search_query) |
-            Q(last_name__icontains=search_query) |
-            Q(email__icontains=search_query) |
-            Q(phone__icontains=search_query)
-        )
-
-    paginator = Paginator(orders, 50)
-    page_number = request.GET.get('page')
-    page_obj = paginator.get_page(page_number)
-
-    return render(request, 'dashboard.html', {
-        'orders': page_obj,
-        'status_filter': status_filter,
-        'search_query': search_query
-    })
 
 def update_order_status_view(request, order_id, new_status):
     if request.user.is_authenticated and request.user.is_superuser:
@@ -184,7 +196,9 @@ def delivery_info_view(request):
     cart_products = cart.get_products()
     quantity = cart.get_quantities()
     total = cart.cart_total_products()
-
+    if total == 0:
+        messages.error(request, "Your cart is empty. Please add item before order")
+        return redirect('home')
     if request.method == 'POST':
 
         form = DeliveryForm(request.POST)
@@ -237,35 +251,149 @@ def order_success_view(request):
     return render(request, 'order_success.html')
 
 
+@transaction.atomic
 def payment_paypal_view(request, order_id):
     order = get_object_or_404(Order, id=order_id)
-    access_token = get_access_token_mock()#TODO mock here
 
+    for item in order.items.all():
+        product = Product.objects.select_for_update().get(id=item.product.id)
+
+        if item.quantity > product.stock:
+            messages.error(request, f"Not enough stock for {product.name}")
+            return redirect('cart')
+
+        product.stock -= item.quantity
+        product.save()
+
+    access_token = get_access_token()
     headers = {
         'Content-Type': 'application/json',
-        'Authorization' : f'Bearer {access_token}'
+        'Authorization': f'Bearer {access_token}'
     }
 
     order_payload = {
-        "intent" : "CAPTURE",
-        "purchase_units":[{
+        "intent": "CAPTURE",
+        "purchase_units": [{
             "amount": {
                 "currency_code": "EUR",
-                "value" : str(order.amount_paid)
+                "value": str(order.amount_paid)
             }
         }],
-        "application_content": {
-            "return_url": request.build_absolute_uri("/paypal_success/"),
-            "cancel_url": request.build_absolute_uri("/paypal_cancel/")
+        "application_context": {
+            "return_url": request.build_absolute_uri("/payment_success/"),
+            "cancel_url": request.build_absolute_uri("/payment_cancel/")
         }
     }
-    responce = requests.post("https://api-m.sandbox.paypal.com/v2/checkout/orders",
-                            headers=headers, json=order_payload )
-    data = responce.json()
+
+    response = requests.post(
+        "https://api-m.sandbox.paypal.com/v2/checkout/orders",
+        headers=headers,
+        json=order_payload
+    )
+    data = response.json()
+
+    order.paypal_order_id = data.get("id")
+    order.status = 'approved'
+    order.save()
+
     for link in data.get("links", []):
         if link['rel'] == 'approve':
-            messages.success(request, 'Redirect to Paypal')
+            messages.success(request, 'Redirecting to PayPal...')
             return redirect(link['href'])
 
-    messages.error(request, "Could not create Paypal order")
+    messages.error(request, "Could not create PayPal order")
     return redirect('delivery_info')
+
+
+@transaction.atomic
+def payment_failed(request):
+    order = get_order_from_session_or_db(request)
+    if order and order.status == 'approved' and order.status_pay == 'pending':
+        for item in order.items.all():
+            product = Product.objects.select_for_update().get(id=item.product.id)
+            product.stock += item.quantity
+            product.save()
+
+        order.status = 'canceled'
+        order.status_pay = 'rejected'
+        order.save()
+
+        messages.warning(request, 'Payment was canceled. Items returned to stock.')
+    return render(request, "payment_failed.html", {})
+
+
+@transaction.atomic
+def payment_success(request):
+    paypal_order_id = request.GET.get('token')
+    if not paypal_order_id:
+        messages.error(request, 'Missing PayPal token.')
+        return redirect('cart_view')
+
+    try:
+        order = Order.objects.get(paypal_order_id=paypal_order_id)
+    except Order.DoesNotExist:
+        messages.error(request, 'Order not found.')
+        return redirect('cart_view')
+
+    if not verify_paypal_capture(order):
+        for item in order.items.all():
+            product = Product.objects.select_for_update().get(id=item.product.id)
+            product.stock += item.quantity
+            product.save()
+
+        order.status = 'canceled'
+        order.status_pay = 'rejected'
+        order.save()
+
+        messages.error(request, 'Payment verification failed. Items returned to stock.')
+        return redirect('cart_view')
+
+    access_token = get_access_token()
+    headers = {
+        'Content-Type': 'application/json',
+        'Authorization': f'Bearer {access_token}'
+    }
+
+    capture_url = f'https://api-m.sandbox.paypal.com/v2/checkout/orders/{paypal_order_id}/capture'
+    response = requests.post(capture_url, headers=headers)
+    data = response.json()
+
+    if data.get('status') == 'COMPLETED':
+        order.status = 'approved'
+        order.status_pay = 'paid'
+        order.save()
+        messages.success(request, 'Payment completed successfully.')
+    else:
+        messages.error(request, f"Capture failed: {data.get('status')}")
+        return redirect('cart_view')
+
+    return render(request, "payment_success.html", {})
+
+
+def get_order_from_session_or_db(request):
+    order_id = request.session.get('paypal_order_id')
+    if order_id:
+        try:
+            return Order.objects.get(id=order_id)
+        except Order.DoesNotExist:
+            pass
+    return None
+
+
+def verify_paypal_capture(order):
+    access_token = get_access_token()
+    headers = {
+        'Content-Type': 'application/json',
+        'Authorization': f'Bearer {access_token}'
+    }
+
+    url = f'https://api-m.sandbox.paypal.com/v2/checkout/orders/{order.paypal_order_id}'
+
+    try:
+        response = requests.get(url, headers=headers)
+        data = response.json()
+        return data.get('status') == 'COMPLETED'
+    except Exception as e:
+        logger.exception(f'Error: {e}')
+        return False
+

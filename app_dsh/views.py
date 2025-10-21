@@ -17,6 +17,8 @@ def home(request, category_name=None):
 
     else:
         products = Product.objects.all()
+
+    products = products.order_by('-stock')
     paginator = Paginator(products, 12)
     page_number = request.GET.get('page')
     page_object = paginator.get_page(page_number)
@@ -37,33 +39,16 @@ def login_user(request):
             messages.success(request, 'You have been login')
             return render(request, 'login.html',{})
         else:
-            messages.success(request,'There was an error')
+            messages.error(request,'Invalid username or password')
             return redirect('login')
     else:
         return render(request, 'login.html', {'error':'invalid credential'})
 
 def logout_user(request):
-    logout(request)
-    messages.success(request,'You have been logout')
+    if request.user.is_authenticated :
+        logout(request)
+        messages.success(request,'You have been logout')
     return redirect('home')
-
-def register_user(request):
-    form = RegistrationForm()
-    if request.method == "POST":
-        form = RegistrationForm(request.POST)
-        if form.is_valid():
-            form.save()
-            username = form.cleaned_data('username')
-            password = form.cleaned_data('password1')
-            user = authenticate(username=username, password=password)
-            login(request, user)
-            messages.success(request, ("Username created - please filed out of you user info below"))
-            return redirect('updated_info')
-        else:
-            messages.success(request, ("Whoops there was a problem registration, please try again..."))
-            return redirect('register')
-    else:
-        return render(request, 'register.html', {'form':form})
 
 
 def product_detail(request, id):
@@ -93,11 +78,3 @@ def search(request):
         'selected_category': None,
         'searched': query,
     })
-
-
-def category_description(request):
-    categories = Category.objects.all()
-    return render(request, 'category_description',{'categories':categories})
-
-def category(request, category_name):
-    pass

@@ -121,7 +121,7 @@ def log_order_status_change(sender, instance, **kwargs):
 
     if previous.status_pay != instance.status_pay:
         OrderLog.objects.create(order=instance, status_pay = instance.status_pay,
-                                note=f"Status pay cjange from {previous.status_pay} to {instance.status_pay}")
+                                note=f"Status pay change from {previous.status_pay} to {instance.status_pay}")
 
     if previous.amount_paid != instance.amount_paid:
         OrderLog.objects.create(order=instance,amount_paid=instance.amount_paid,

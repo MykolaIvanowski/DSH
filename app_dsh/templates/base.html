@@ -7,7 +7,7 @@
         <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
         <meta name="description" content="" />
         <meta name="author" content="" />
-        <title>Shop Homepage - Start Bootstrap Template</title>
+        <title>Shop Homepage</title>
         <!-- Favicon-->
         <link rel="icon" type="image/x-icon" href="{% static 'assets/favicon.ico' %}" />
         <!-- Bootstrap icons-->
@@ -23,7 +23,7 @@
             {% if messages %}
                 {% for message in messages %}
                     <div class="alert alert-warning alert-dismissible fade show" role="alert">
-                      <strong>Holy guacamole! {{ message }}</strong> You should check in on some of those fields below.
+                      <strong>Message!!! {{ message }}</strong>
                       <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                     </div>
                 {% endfor %}
@@ -59,10 +59,23 @@ document.addEventListener('DOMContentLoaded', function () {
 </script>
     <script>
         window.addEventListener('pageshow', function (event) {
-    if (event.persisted || window.performance.navigation.type === 2) {
-        window.location.reload();
-    }
-});
+            if (event.persisted) {
+                // повторно оновити корзину
+                fetch('/cart/status/')
+                    .then(response => response.json())
+                    .then(data => {
+                        const quantityBadge = document.getElementById('cart_quantity');
+                        if (quantityBadge) {
+                            quantityBadge.textContent = data.quantity;
+                        }
+
+                        const totalDisplay = document.getElementById('cart_total');
+                        if (totalDisplay) {
+                            totalDisplay.textContent = '€' + parseFloat(data.total).toFixed(2);
+                        }
+                    });
+            }
+        });
     </script>
     </body>
 </html>

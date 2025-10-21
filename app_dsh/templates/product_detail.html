@@ -1,5 +1,13 @@
 {% extends 'base.html' %}
 {% block content %}
+        <header class="bg-dark py-2">
+          <div class="container px-4 px-lg-5 my-3">
+            <div class="text-center text-white">
+              <h1 class="h3 fw-bold">Style meets simplicity</h1>
+              <p class="text-white-50 mb-0">Where fashion meets function</p>
+            </div>
+          </div>
+        </header>
 <div class="container" xmlns="http://www.w3.org/1999/html">
 <br/>
 <div class="container d-flex justify-content-center">
@@ -7,7 +15,11 @@
       <div class="row g-0">
         <div class="col-md-4 d-flex align-items-stretch">
           <div class="image-frame w-100">
-            <img src="{{ product.image.url }}" alt="{{ product.name }}">
+              {% if product.image and product.image.name %}
+                <img src="{{ product.image.url }}" alt="{{ product.name }}">
+              {% else %}
+                <img src="https://dummyimage.com/450x300/dee2e6/6c757d.jpg" alt="No image available">
+              {% endif %}
           </div>
         </div>
         <div class="col-md-8">
@@ -48,13 +60,13 @@
                       <button class="btn btn-outline-secondary px-3" onclick="increaseQty()">+</button>
                     </div>
                   </div>
-                    {% if product.stock < 4 and not product.allow_backorder %}
+                    {% if product.stock < 4 %}
                     <div class="col-md-2 mx-4">In stock: {{ product.stock }}</div>
                     {% endif %}
                   <div class="w-100 my-3"></div>
                   <div class="col-md-4 x-flex justify-content-center gap-3 ms-3">
                     <a href="{% url 'home' %}" class="btn btn-secondary">Home</a>
-                      {% if product.stock > 0 or product.allow_backorder %}
+                      {% if product.stock > 0 %}
                     <button type="button" value="{{ product.id }}" class="btn btn-primary" id="add-cart">Add To Cart</button>
                         {% else %}
                         <button type="button" value="{{ product.id }}" class="btn btn-secondary" disabled>Not available</button>

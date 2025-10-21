@@ -1,11 +1,11 @@
 {% extends 'base.html' %}
 {% block content %}
         <!-- Header-->
-<header class="bg-dark py-3">
-  <div class="container-fluid px-4 px-lg-5 my-3">
+<header class="bg-dark py-2">
+  <div class="container px-4 px-lg-5 my-3">
     <div class="text-center text-white">
-      <h1 class="h3 fw-bold">Shop in style</h1>
-      <p class="text-white-50 mb-0">With this shop homepage template</p>
+      <h1 class="h3 fw-bold">Style meets simplicity</h1>
+      <p class="text-white-50 mb-0">Where fashion meets function</p>
     </div>
   </div>
 </header>
@@ -59,10 +59,17 @@
 
                                 <!-- Product image-->
                                 {% if product.image %}
-                                    {% if product.is_sale%}
-                                    <div class="badge bg-danger text-white position-absolute fs-6" style="top: 0.5rem; right: 0.5rem">Sale</div>
+                                    {% if product.stock == 0 %}
+                                        <div class="position-relative">
+                                            <img class="card-img-top image-fixed-product opacity-50" src="{{ product.image.url }}" alt="...">
+                                            <div class="position-absolute top-50 start-50 translate-middle bg-dark text-white px-2 py-1 rounded">Not available</div>
+                                        </div>
+                                    {% else %}
+                                        {% if product.is_sale%}
+                                            <div class="badge bg-danger text-white position-absolute fs-6" style="top: 0.5rem; right: 0.5rem">Sale</div>
+                                        {% endif %}
+                                        <img class="card-img-top image-fixed-product" src="{{ product.image.url }}" alt="..." />
                                     {% endif %}
-                                <img class="card-img-top image-fixed-product" src="{{ product.image.url }}" alt="..." />
                                 {% else %}
                                 <img class="card-img-top image-fixed-product" src="https://dummyimage.com/450x300/dee2e6/6c757d.jpg" alt="..." />
                                 {% endif %}
@@ -89,6 +96,13 @@
                                     <div class="text-center">
                                         <a class="btn btn-outline-dark mt-auto"
                                            href="{% url 'product_detail' product.id %}">Product details</a>
+
+                                        <!-- possibility to disable button if stock==0 -->
+<!--                                        {% if product.stock > 0 %}-->
+<!--                                            <a class="btn btn-outline-dark mt-auto" href="{% url 'product_detail' product.id %}">Product details</a>-->
+<!--                                        {% else %}-->
+<!--                                            <button class="btn btn-outline-secondary mt-auto" disabled>Not available</button>-->
+<!--                                        {% endif %}-->
                                     </div>
                                 </div>
                             </div>
