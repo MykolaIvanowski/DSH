@@ -1,8 +1,8 @@
 from django.shortcuts import render, redirect
 from django.core.paginator import Paginator
+from django.utils.cache import add_never_cache_headers
 from .models import Product, Category
-from .forms import RegistrationForm
-from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth import authenticate, logout
 from django.contrib import messages
 from django.db.models import Q
 
@@ -10,6 +10,15 @@ def about(request):
     return render(request, 'about.html', {})
 
 
+def no_cache(view_function):
+    def wrapper(request, *args, **kwargs):
+        response = view_function(request, *args, **kwargs)
+        add_never_cache_headers(response)
+        return response
+    return wrapper
+
+
+@no_cache
 def home(request, category_name=None):
     if category_name:
         category = Category.objects.filter(name=category_name).first()
@@ -27,22 +36,22 @@ def home(request, category_name=None):
                                         'selected_category': category_name, 'page_object':page_object})
 
 
-def login_user(request):
-    if request.method == 'POST':
-        username = request.POST['username']
-        password = request.POST['password']
-        user = authenticate(request, username=username,password=password)
-
-        if user is not None:
-            login(request, user)
-
-            messages.success(request, 'You have been login')
-            return render(request, 'login.html',{})
-        else:
-            messages.error(request,'Invalid username or password')
-            return redirect('login')
-    else:
-        return render(request, 'login.html', {'error':'invalid credential'})
+# def login_user(request):
+#     if request.method == 'POST':
+#         username = request.POST['username']
+#         password = request.POST['password']
+#         user = authenticate(request, username=username,password=password)
+#
+#         if user is not None:
+#             login(request, user)
+#
+#             messages.success(request, 'You have been login')
+#             return render(request, 'login.html',{})
+#         else:
+#             messages.error(request,'Invalid username or password')
+#             return redirect('login')
+#     else:
+#         return render(request, 'login.html', {'error':'invalid credential'})
 
 def logout_user(request):
     if request.user.is_authenticated :
