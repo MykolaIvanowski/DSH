@@ -20,7 +20,7 @@ STATUS_PAY_CHOICES = [
     ('paid','paid'),
     ('partly_paid', 'partly_paid'),
     ('rejected', 'rejected'),
-    ('refunded',' refunded')
+    ('refunded','refunded')
 ]
 
 class Order(models.Model):
