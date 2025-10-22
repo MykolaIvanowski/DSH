@@ -1,6 +1,8 @@
 import json
 import requests
 import logging
+
+from django.contrib.auth.decorators import user_passes_test
 from django.db import transaction
 
 from django.utils import timezone
@@ -12,7 +14,7 @@ from requests.auth import HTTPBasicAuth
 from app_dsh.models import Product
 from dsh.settings import CLIENT_ID, CLIENT_SECRET
 from dsh_payment.forms import DeliveryForm
-from dsh_payment.models import Order, OrderItem, OrderLog, STATUS_CHOICES
+from dsh_payment.models import Order, OrderItem, OrderLog, STATUS_CHOICES, STATUS_PAY_CHOICES
 from cart.cart import Cart
 from django.contrib import messages
 from django.views.decorators.http import require_http_methods
@@ -176,19 +178,29 @@ def update_order_status_view(request, order_id, new_status):
         raise Http404('Nothing here resource not found')
 
 
-
+@user_passes_test(lambda u: u.is_authenticated and u.is_superuser)
 def order_item_view(request, item_id):
-    if request.user.is_authenticated and request.user.is_superuser:
-        order = get_object_or_404(Order, id=item_id)
-        items = OrderItem.objects.filter(order=order).select_related('product')
-        oreder_totals = sum(item.quantity * item.price for item in items )
-        return render(request, 'order_items.html', {
-            'order': order,
-            'items': items,
-            'order_totals':oreder_totals,
-        })
-    else:
-        raise Http404('Nothing here, resource not found')
+    order = get_object_or_404(Order, id=item_id)
+    items = OrderItem.objects.filter(order=order).select_related('product')
+    order_totals = sum(item.quantity * item.price for item in items)
+
+    if request.method == "POST":
+        new_status = request.POST.get("status_pay")
+        VALID_STATUSES = {choice[0] for choice in STATUS_PAY_CHOICES}
+        if new_status in VALID_STATUSES:
+            order.status_pay = new_status
+            order.save()
+            messages.success(request, f"Payment status updated to '{new_status}'.")
+            log_order_change(order, status_pay=new_status, note='Manual: change provided by superuser')
+            return redirect('order_item', item_id=item_id)
+        else:
+            messages.error(request, "Invalid payment status selected.")
+
+    return render(request, 'order_items.html', {
+        'order': order,
+        'items': items,
+        'order_totals': order_totals,
+    })
 
 
 def delivery_info_view(request):
