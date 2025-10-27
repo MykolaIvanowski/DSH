@@ -26,8 +26,10 @@ APPEND_SLASH = True
 # SECURITY WARNING: keep the secret key used in production secret!
 if ENV == 'prod':
     SECRET_KEY = os.getenv('SECRET_KEY')
-    if ENV == 'prod' and not SECRET_KEY:
+    if not SECRET_KEY:
         raise ValueError("SECRET_KEY must be set in production environment")
+    elif SECRET_KEY.startswith('django-insecure-'):
+        raise ValueError("insecure SECRET_KEY used in production")
 else:
     SECRET_KEY = "django-insecure-c1rbwi*hsy!ya@9r4ho=!r52obw7wp9deg1ww#*0#!&x0hq&b2"
 
