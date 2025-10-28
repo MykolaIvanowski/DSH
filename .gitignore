@@ -3,3 +3,4 @@ __pycache__/
 db.sqlite3
 media/product_images/
 media/
+product_images/
