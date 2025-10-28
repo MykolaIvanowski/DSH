@@ -27,7 +27,7 @@ def home(request, category_name=None):
     else:
         products = Product.objects.all()
 
-    products = products.order_by('-stock')
+    products = products.order_by('-stock', '-is_sale', '-id', '-price')
     paginator = Paginator(products, 12)
     page_number = request.GET.get('page')
     page_object = paginator.get_page(page_number)
