@@ -11,6 +11,8 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 """
 import sys
 import os
+import dj_database_url
+
 from pathlib import Path
 
 
@@ -114,16 +116,11 @@ else:
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 if ENV == 'prod':
+
     DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.postgresql',
-            'NAME': os.getenv('RAILWAY_DB_NAME'),
-            'USER': os.getenv('RAILWAY_DB_USER'),
-            'PASSWORD': os.getenv('RAILWAY_DB_PASSWORD'),
-            'HOST': os.getenv('RAILWAY_DB_HOST'),
-            'PORT': os.getenv('RAILWAY_DB_PORT'),
-        }
+        'default': dj_database_url.config(default=os.getenv("DATABASE_URL"))
     }
+
 else:
     DATABASES = {
         'default': {
@@ -171,7 +168,7 @@ if ENV == 'prod':
     STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 else:
     STATIC_URL = "static/"
-    STATICFILES_DIRS = [BASE_DIR / 'app_dsh/static'] if (BASE_DIR / 'app_dsh/static').exists() else []
+    STATICFILES_DIRS = [BASE_DIR / 'static'] if (BASE_DIR / 'static').exists() else []
 
 
 # Default primary key field type
