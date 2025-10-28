@@ -41,7 +41,11 @@ if  ENV == 'prod':
 else:
     DEBUG = True
 
-ALLOWED_HOSTS = ['dsh-production-3b04.up.railway.app'] if ENV == 'prod' else []
+if ENV == 'prod':
+    ALLOWED_HOSTS = ['dsh-production-3b04.up.railway.app']
+    CSRF_TRUSTED_ORIGINS = ["https://dsh-production-3b04.up.railway.app"]
+else:
+    ALLOWED_HOSTS = ['localhost','127.0.0.1']
 
 
 # Application definition
