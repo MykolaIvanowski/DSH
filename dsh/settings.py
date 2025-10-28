@@ -14,7 +14,7 @@ import os
 from pathlib import Path
 
 
-ENV = os.getenv('ENV', 'prod')
+ENV = os.getenv('ENV','').lower()
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -39,7 +39,7 @@ if  ENV == 'prod':
 else:
     DEBUG = True
 
-ALLOWED_HOSTS = ['*'] if ENV == 'prod' else []
+ALLOWED_HOSTS = ['dsh-production-3b04.up.railway.app'] if ENV == 'prod' else []
 
 
 # Application definition
@@ -195,12 +195,12 @@ LOGGING = {
     'handlers': {
         'console': {
             'class': 'logging.StreamHandler',
-            'stream': sys.stdout,  # або sys.stderr
+            'stream': sys.stdout,
         },
     },
     'root': {
         'handlers': ['console'],
-        'level': 'WARNING',  # або 'INFO', 'DEBUG'
+        'level': 'WARNING',
     },
     'loggers': {
         'django': {

@@ -1,5 +1,5 @@
 __pycache__/
 .idea
 db.sqlite3
-product_images/
+media/product_images/
 media/
