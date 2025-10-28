@@ -53,7 +53,8 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "app_dsh",
     "cart",
-    "dsh_payment"
+    "dsh_payment",
+    "whitenoise.runserver_nostatic",
 ]
 
 if ENV == 'prod':
@@ -67,6 +68,7 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "whitenoise.middleware.WhiteNoiseMiddleware",
 ]
 
 ROOT_URLCONF = "dsh.urls"
@@ -165,9 +167,11 @@ USE_TZ = True
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
-
-STATIC_URL = "static/"
-STATICFILES_DIRS = [BASE_DIR / 'app_dsh/static'] if (BASE_DIR / 'app_dsh/static').exists() else []
+if ENV == 'prod':
+    STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
+else:
+    STATIC_URL = "static/"
+    STATICFILES_DIRS = [BASE_DIR / 'app_dsh/static'] if (BASE_DIR / 'app_dsh/static').exists() else []
 
 
 # Default primary key field type
