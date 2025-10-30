@@ -111,6 +111,11 @@ if ENV == 'prod':
     AWS_S3_ENDPOINT_URL = 'https://s3.eu-central-1.wasabisys.com'
     AWS_S3_REGION_NAME = 'eu-central-1'
     AWS_QUERYSTRING_AUTH = False
+    AWS_S3_FILE_OVERWRITE = False
+    AWS_DEFAULT_ACL = None
+    MEDIA_URL = f'https://s3.eu-central-1.wasabisys.com/{AWS_STORAGE_BUCKET_NAME}/'
+
+
 
 else:
     DEFAULT_FILE_STORAGE = 'django.core.files.storage.FileSystemStorage'
