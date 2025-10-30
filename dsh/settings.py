@@ -103,12 +103,11 @@ WSGI_APPLICATION = "dsh.wsgi.application"
 
 
 # media files
-if ENV == '':
-    SECRET_KEY = "django-insecure-c1rbwi*hsy!ya@9r4ho=!r52obw7wp9deg1ww#*0#!&x0hq&b2"
+if ENV == 'prod':
     DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
-    AWS_ACCESS_KEY_ID ='7UEM5HP5L9KE3RDSV2VE'
-    AWS_SECRET_ACCESS_KEY = 'bhTQQ8T2gamPT6WlvC3kqHWb2bocZd1Isy5uoq0o'
-    AWS_STORAGE_BUCKET_NAME = 'projectdsh-test'
+    AWS_ACCESS_KEY_ID = os.getenv('AWS_ACCESS_KEY_ID')
+    AWS_SECRET_ACCESS_KEY = os.getenv('AWS_SECRET_ACCESS_KEY')
+    AWS_STORAGE_BUCKET_NAME = os.getenv('AWS_STORAGE_BUCKET_NAME')
     AWS_S3_ENDPOINT_URL = 'https://s3.eu-central-1.wasabisys.com'
     AWS_S3_REGION_NAME = 'eu-central-1'
     AWS_QUERYSTRING_AUTH = False
@@ -122,23 +121,23 @@ else:
 
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
-# if ENV == 'prod':
-#
-#     DATABASES = {
-#         'default': dj_database_url.config(default=os.getenv("DATABASE_URL"))
-#     }
-#
-# else:
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'dsh_test',
-        'USER': 'postgres',
-        'PASSWORD': 'new_password',
-        'HOST': 'localhost',
-        'PORT': '5432',
+if ENV == 'prod':
+
+    DATABASES = {
+        'default': dj_database_url.config(default=os.getenv("DATABASE_URL"))
     }
-}
+
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': 'dsh_test',
+            'USER': 'postgres',
+            'PASSWORD': 'new_password',
+            'HOST': 'localhost',
+            'PORT': '5432',
+        }
+    }
 
 
 # Password validation
@@ -171,7 +170,8 @@ USE_TZ = True
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+
+STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
 STATIC_URL = "static/"
 STATICFILES_DIRS = [BASE_DIR / 'static'] if (BASE_DIR / 'static').exists() else []
