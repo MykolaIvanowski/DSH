@@ -114,9 +114,6 @@ if ENV == 'prod':
     AWS_S3_FILE_OVERWRITE = False
     AWS_DEFAULT_ACL = None
     MEDIA_URL = f'https://s3.eu-central-1.wasabisys.com/{AWS_STORAGE_BUCKET_NAME}/'
-
-
-
 else:
     DEFAULT_FILE_STORAGE = 'django.core.files.storage.FileSystemStorage'
     MEDIA_URL = '/media/'
@@ -225,3 +222,12 @@ LOGGING = {
         },
     },
 }
+
+# Django fix wasabi
+from django.utils.module_loading import import_string
+from django.core.files import storage
+from django.core.files.storage import default_storage
+
+
+storage.default_storage = import_string(DEFAULT_FILE_STORAGE)()
+print(default_storage.__class__ )
