@@ -230,4 +230,4 @@ from django.core.files.storage import default_storage
 
 
 storage.default_storage = import_string(DEFAULT_FILE_STORAGE)()
-print(default_storage.__class__ )
+print(default_storage.__class__ , ENV, DEFAULT_FILE_STORAGE)
