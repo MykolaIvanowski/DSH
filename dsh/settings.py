@@ -224,11 +224,11 @@ LOGGING = {
 }
 
 # Django fix wasabi
-from django.utils.module_loading import import_string
-import django.core.files.storage
-
-django.core.files.storage.default_storage = import_string('storages.backends.s3boto3.S3Boto3Storage')()
-
+# from django.utils.module_loading import import_string
+# import django.core.files.storage
+#
+# django.core.files.storage.default_storage = import_string('storages.backends.s3boto3.S3Boto3Storage')()
+#
 
 from django.core.files.storage import default_storage
 print(default_storage.__class__)
