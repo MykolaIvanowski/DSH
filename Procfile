@@ -1,1 +1,1 @@
-web: python manage.py migrate && gunicorn dsh.wsgi:application
+web: python manage.py migrate && gunicorn dsh.wsgi:application -c gunicorn.conf.py
