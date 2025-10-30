@@ -225,9 +225,9 @@ LOGGING = {
 
 # Django fix wasabi
 from django.utils.module_loading import import_string
-from django.core.files import storage
-from django.core.files.storage import default_storage
+from django.core.files.storage import default_storage as original_default_storage
+import django.core.files.storage
 
+django.core.files.storage.default_storage = import_string(DEFAULT_FILE_STORAGE)()
+print(original_default_storage.__class__ , ENV, DEFAULT_FILE_STORAGE)
 
-storage.default_storage = import_string(DEFAULT_FILE_STORAGE)()
-print(default_storage.__class__ , ENV, DEFAULT_FILE_STORAGE)
