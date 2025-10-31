@@ -8,7 +8,7 @@ python manage.py collectstatic --noinput
 
 # start Gunicorn
 gunicorn dsh.wsgi:application
-sleep 2
-# start nginx
+sleep 3
+
 echo "🌐 Starting nginx..."
 nginx -g "daemon off;"
