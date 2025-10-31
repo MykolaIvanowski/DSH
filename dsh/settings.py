@@ -115,7 +115,7 @@ if ENV == 'prod':
     # AWS_DEFAULT_ACL = None
     # MEDIA_URL = f'https://s3.eu-central-1.wasabisys.com/{AWS_STORAGE_BUCKET_NAME}/'
     DEFAULT_FILE_STORAGE = 'django.core.files.storage.FileSystemStorage'
-    MEDIA_URL = '/dshvolume/media/'
+    MEDIA_URL = '/media/'
     MEDIA_ROOT = '/data/media'
 
 else:
