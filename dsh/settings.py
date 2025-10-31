@@ -63,8 +63,8 @@ INSTALLED_APPS = [
     "whitenoise.runserver_nostatic",
 ]
 
-if ENV == 'prod':
-    INSTALLED_APPS += ['storages']
+# if ENV == 'prod':
+#     INSTALLED_APPS += ['storages']
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
@@ -104,16 +104,20 @@ WSGI_APPLICATION = "dsh.wsgi.application"
 
 # media files
 if ENV == 'prod':
-    DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
-    AWS_ACCESS_KEY_ID = os.getenv('AWS_ACCESS_KEY_ID')
-    AWS_SECRET_ACCESS_KEY = os.getenv('AWS_SECRET_ACCESS_KEY')
-    AWS_STORAGE_BUCKET_NAME = os.getenv('AWS_STORAGE_BUCKET_NAME')
-    AWS_S3_ENDPOINT_URL = 'https://s3.eu-central-1.wasabisys.com'
-    AWS_S3_REGION_NAME = 'eu-central-1'
-    AWS_QUERYSTRING_AUTH = False
-    AWS_S3_FILE_OVERWRITE = False
-    AWS_DEFAULT_ACL = None
-    MEDIA_URL = f'https://s3.eu-central-1.wasabisys.com/{AWS_STORAGE_BUCKET_NAME}/'
+    # DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
+    # AWS_ACCESS_KEY_ID = os.getenv('AWS_ACCESS_KEY_ID')
+    # AWS_SECRET_ACCESS_KEY = os.getenv('AWS_SECRET_ACCESS_KEY')
+    # AWS_STORAGE_BUCKET_NAME = os.getenv('AWS_STORAGE_BUCKET_NAME')
+    # AWS_S3_ENDPOINT_URL = 'https://s3.eu-central-1.wasabisys.com'
+    # AWS_S3_REGION_NAME = 'eu-central-1'
+    # AWS_QUERYSTRING_AUTH = False
+    # AWS_S3_FILE_OVERWRITE = False
+    # AWS_DEFAULT_ACL = None
+    # MEDIA_URL = f'https://s3.eu-central-1.wasabisys.com/{AWS_STORAGE_BUCKET_NAME}/'
+    DEFAULT_FILE_STORAGE = 'django.core.files.storage.FileSystemStorage'
+    MEDIA_URL = '/dsh-volume/media/'
+    MEDIA_ROOT = BASE_DIR / 'media'
+
 else:
     DEFAULT_FILE_STORAGE = 'django.core.files.storage.FileSystemStorage'
     MEDIA_URL = '/media/'
