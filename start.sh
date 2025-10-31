@@ -7,7 +7,7 @@ python manage.py migrate --noinput
 python manage.py collectstatic --noinput
 
 # start Gunicorn
-gunicorn dsh.wsgi:application --bind 0.0.0.0:8000 &
+gunicorn dsh.wsgi:application  &
 sleep 2
 # start nginx
 echo "🌐 Starting nginx..."
