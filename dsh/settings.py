@@ -37,7 +37,7 @@ else:
 
 # SECURITY WARNING: don't run with debug turned on in production!
 if  ENV == 'prod':
-    DEBUG = False
+    DEBUG = True
 else:
     DEBUG = True
 

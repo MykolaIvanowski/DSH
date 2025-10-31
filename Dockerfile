@@ -11,7 +11,7 @@ COPY . /app
 
 
 RUN pip install --upgrade pip && pip install -r requirements.txt
-
+RUN chmod -R 755 /data/media
 
 COPY nginx.conf /etc/nginx/nginx.conf
 
