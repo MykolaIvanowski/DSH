@@ -3,5 +3,5 @@
 python manage.py migrate
 python manage.py collectstatic --noinput
 
-gunicorn dsh.wsgi:application --bind 127.0.0.1:8000 &
+gunicorn dsh.wsgi:application --bind 0.0.0.0:8000 & &
 nginx -g "daemon off;"
