@@ -61,6 +61,9 @@ def logout_user(request):
 
 
 def product_detail(request, id):
+    import os
+    print("MEDIA_ROOT =", settings.MEDIA_ROOT)
+    print("MEDIA_ROOT exists:", os.path.exists(settings.MEDIA_ROOT))
     product = Product.objects.get(id=id)
     return render(request, 'product_detail.html', {'product': product})
 
