@@ -190,14 +190,11 @@ AUTH_USER_MODEL = 'auth.User'
 
 
 #paypal
-PAYPAL_RECEIVER_EMAIL = os.getenv('PAYPAL_RECEIVER_EMAIL')
 PAYPAL_CLIENT_ID = os.getenv('PAYPAL_CLIENT_ID')
 PAYPAL_SECRET = os.getenv('PAYPAL_SECRET')
+PAYPAL_WEBHOOK_ID = os.getenv('PAYPAL_WEBHOOK_ID')
 
-
-CLIENT_ID = os.getenv('CLIENT_ID')
-CLIENT_SECRET = os.getenv('CLIENT_SECRET')
-
+PAYPAL_URL = "https://api-m.sandbox.paypal.com" # 'https://api-m.paypal.com'
 
 # logging
 

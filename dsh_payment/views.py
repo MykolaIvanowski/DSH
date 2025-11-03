@@ -4,15 +4,13 @@ import logging
 
 from django.contrib.auth.decorators import user_passes_test
 from django.db import transaction
-
 from django.utils import timezone
-from django.http import JsonResponse, Http404
+from django.http import JsonResponse, Http404, HttpResponseBadRequest
 from django.shortcuts import render, redirect, get_object_or_404
 from django.views.decorators.csrf import csrf_exempt
 from requests.auth import HTTPBasicAuth
-
 from app_dsh.models import Product
-from dsh.settings import CLIENT_ID, CLIENT_SECRET
+from dsh.settings import PAYPAL_SECRET,PAYPAL_CLIENT_ID, PAYPAL_URL, PAYPAL_WEBHOOK_ID
 from dsh_payment.forms import DeliveryForm
 from dsh_payment.models import Order, OrderItem, OrderLog, STATUS_CHOICES, STATUS_PAY_CHOICES
 from cart.cart import Cart
@@ -26,14 +24,14 @@ logger = logging.getLogger(__name__)
 
 
 def get_access_token():
-    url = "https://api-m.sandbox.paypal.com/v1/oauth2/token"
+    url = f"{PAYPAL_URL}/v1/oauth2/token"
     headers = {
         "Accept": "application/json",
         "Accept-language": "en-US",
         "Content-Type": "application/x-www-form-urlencoded"
     }
     data = {"grant_type": "client_credentials"}
-    response = requests.post(url=url, headers=headers,data=data, auth=HTTPBasicAuth(CLIENT_ID, CLIENT_SECRET))
+    response = requests.post(url=url, headers=headers,data=data, auth=HTTPBasicAuth(PAYPAL_CLIENT_ID, PAYPAL_SECRET))
     if "access_token" in response.json():
         return response.json()["access_token"]
     else:
@@ -49,44 +47,90 @@ def log_order_change(order, *, status=None, status_pay=None,amount_paid=None, no
         note=note
     )
 
+
 @csrf_exempt
 def paypal_webhook(request):
-    if request.method != "POST":
-        return JsonResponse({"error": "Invalid method"}, status=405)
-
     try:
-        data = json.loads(request.body)
+        if request.method != "POST":
+            return JsonResponse({"error": "Invalid method"}, status=405)
+
+        try:
+            data = json.loads(request.body)
+        except json.JSONDecodeError:
+            logger.warning("Webhook: Invalid JSON")
+            return HttpResponseBadRequest("Invalid JSON")
+
+        headers = {
+            "PayPal-Transmission-Id": request.headers.get("PayPal-Transmission-Id"),
+            "PayPal-Transmission-Time": request.headers.get("PayPal-Transmission-Time"),
+            "PayPal-Transmission-Sig": request.headers.get("PayPal-Transmission-Sig"),
+            "PayPal-Cert-Url": request.headers.get("PayPal-Cert-Url"),
+            "PayPal-Auth-Algo": request.headers.get("PayPal-Auth-Algo"),
+            "Content-Type": "application/json",
+            "Authorization": f"Bearer {get_access_token()}"
+        }
+
+        verify_payload = {
+            "auth_algo": headers["PayPal-Auth-Algo"],
+            "cert_url": headers["PayPal-Cert-Url"],
+            "transmission_id": headers["PayPal-Transmission-Id"],
+            "transmission_sig": headers["PayPal-Transmission-Sig"],
+            "transmission_time": headers["PayPal-Transmission-Time"],
+            "webhook_id": PAYPAL_WEBHOOK_ID,
+            "webhook_event": data
+        }
+
+        verify_response = requests.post(
+            f"{PAYPAL_URL}/v1/notifications/verify-webhook-signature",
+            headers=headers,
+            json=verify_payload
+        )
+
+        if verify_response.status_code != 200 or verify_response.json().get("verification_status") != "SUCCESS":
+            logger.warning("Webhook: Signature verification failed")
+            return JsonResponse({"error": "Invalid signature"}, status=400)
+
         event_type = data.get("event_type")
+        resource = data.get("resource", {})
+
+        logger.info(f"Webhook received: {event_type}")
 
         if event_type == "CHECKOUT.ORDER.APPROVED":
-            order_id = data["resource"]["id"]
-            try:
-                order = Order.objects.get(paypal_order_id=order_id)
-                order.status = 'approved'
-                order.save()
-                log_order_change(order, note='Webhook: CHECKOUT.ORDER.APPROVED')
-            except Order.DoesNotExist:
-                logger.warning(f"Webhook: Order {order_id} not found")
+            order_id = resource.get("id")
+            if order_id:
+                try:
+                    order = Order.objects.get(paypal_order_id=order_id)
+                    order.status = "approved"
+                    order.save()
+                    log_order_change(order, note="Webhook: CHECKOUT.ORDER.APPROVED")
+                except Order.DoesNotExist:
+                    logger.warning(f"Webhook: Order {order_id} not found")
 
         elif event_type == "PAYMENT.CAPTURE.COMPLETED":
-            order_id = data["resource"]["supplementary_data"]["related_ids"]["order_id"]
-            amount = data["resource"]["amount"]["value"]
+            related_ids = resource.get("supplementary_data", {}).get("related_ids", {})
+            order_id = related_ids.get("order_id")
+            amount = resource.get("amount", {}).get("value")
 
-            try:
-                order = Order.objects.get(paypal_order_id=order_id)
-                if order.status_pay != 'paid':
-                    order.status_pay = 'paid'
-                    order.amount_paid = amount
-                    order.save()
-                    log_order_change(order, amount_paid=amount, note='Webhook: PAYMENT.CAPTURE.COMPLETED')
-            except Order.DoesNotExist:
-                logger.warning(f"Webhook: Order {order_id} not found")
+            if order_id and amount:
+                try:
+                    order = Order.objects.get(paypal_order_id=order_id)
+                    if order.status_pay != "paid":
+                        order.status_pay = "paid"
+                        order.amount_paid = amount
+                        order.save()
+                        log_order_change(order, amount_paid=amount, note="Webhook: PAYMENT.CAPTURE.COMPLETED")
+                except Order.DoesNotExist:
+                    logger.warning(f"Webhook: Order {order_id} not found")
+
+        else:
+            logger.info(f"Webhook: Unhandled event type {event_type}")
 
         return JsonResponse({"status": "received"})
 
     except Exception as e:
-        logger.exception(f"Webhook error: {e}")
-        return JsonResponse({"error": "Webhook processing failed"}, status=500)
+        logger.exception("Unexpected error in webhook")
+        return JsonResponse({"error": "Internal error"}, status=500)
+
 
 
 def confirm_order_view(request, order_id):
@@ -298,7 +342,7 @@ def payment_paypal_view(request, order_id):
     }
 
     response = requests.post(
-        "https://api-m.sandbox.paypal.com/v2/checkout/orders",
+        f"{PAYPAL_URL}/v2/checkout/orders",
         headers=headers,
         json=order_payload
     )
@@ -366,7 +410,7 @@ def payment_success(request):
         'Authorization': f'Bearer {access_token}'
     }
 
-    capture_url = f'https://api-m.sandbox.paypal.com/v2/checkout/orders/{paypal_order_id}/capture'
+    capture_url = f'{PAYPAL_URL}/v2/checkout/orders/{paypal_order_id}/capture'
     response = requests.post(capture_url, headers=headers)
     data = response.json()
 
@@ -399,7 +443,7 @@ def verify_paypal_capture(order):
         'Authorization': f'Bearer {access_token}'
     }
 
-    url = f'https://api-m.sandbox.paypal.com/v2/checkout/orders/{order.paypal_order_id}'
+    url = f'{PAYPAL_URL}/v2/checkout/orders/{order.paypal_order_id}'
 
     try:
         response = requests.get(url, headers=headers)
