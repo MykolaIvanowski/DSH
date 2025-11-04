@@ -401,13 +401,13 @@ def payment_success(request):
     paypal_order_id = request.GET.get('token')
     if not paypal_order_id:
         messages.error(request, 'Missing PayPal token.')
-        return redirect('cart_view')
+        return redirect('cart')
 
     try:
         order = Order.objects.get(paypal_order_id=paypal_order_id)
     except Order.DoesNotExist:
         messages.error(request, 'Order not found.')
-        return redirect('cart_view')
+        return redirect('cart')
 
     if not verify_paypal_capture(order):
         for item in order.items.all():
@@ -420,7 +420,7 @@ def payment_success(request):
         order.save()
 
         messages.error(request, 'Payment verification failed. Items returned to stock.')
-        return redirect('cart_view')
+        return redirect('cart')
 
     access_token = get_access_token()
     headers = {
@@ -439,7 +439,7 @@ def payment_success(request):
         messages.success(request, 'Payment completed successfully.')
     else:
         messages.error(request, f"Capture failed: {data.get('status')}")
-        return redirect('cart_view')
+        return redirect('cart')
 
     return render(request, "payment_success.html", {})
 
