@@ -38,6 +38,7 @@ class Order(models.Model):
     date_ordered = models.DateTimeField(auto_now_add=True)
     date_delivered = models.DateTimeField(blank=True, null=True)
 
+    order_id = models.CharField(max_length=64, blank=True, null=True)
     status_pay = models.CharField(max_length=20, choices=STATUS_PAY_CHOICES, default='pending')
 
     street_home = models.CharField(max_length=255)

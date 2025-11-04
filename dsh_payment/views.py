@@ -443,7 +443,7 @@ def payment_success(request):
 
 
 def get_order_from_session_or_db(request):
-    order_id = request.session.get('paypal_order_id')
+    order_id = request.session.get('order_id')
     if order_id:
         try:
             return Order.objects.get(id=order_id)
