@@ -2,7 +2,7 @@ from django.urls import path
 from . import views
 
 urlpatterns = [
-    path('payment_failed/', views.payment_failed, name='payment_failed'),
+    path('payment_cancel/', views.payment_failed, name='payment_cancel'),
     path('payment_success/', views.payment_success, name='payment_success'),
     path('paypal/webhook/', views.paypal_webhook, name='paypal_webhook'),
     path('dashboard/', views.order_dashboard_view, name='dashboard'),

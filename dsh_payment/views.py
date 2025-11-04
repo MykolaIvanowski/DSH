@@ -1,4 +1,6 @@
 import json
+from idlelib.debugobj_r import remote_object_tree_item
+
 import requests
 import logging
 
@@ -232,6 +234,19 @@ def order_item_view(request, item_id):
         new_status = request.POST.get("status_pay")
         VALID_STATUSES = {choice[0] for choice in STATUS_PAY_CHOICES}
         if new_status in VALID_STATUSES:
+            if new_status == 'paid' and order.status_pay != 'paid':
+                for item in order.items.select_ralated('product').all():
+                    product = Product.objects.select_for_update().get(id=item.product.id)
+                    if item.quantity > product.stock:
+                        messages.error(request, f'Not enough stock  for {product.name}')
+                        return redirect('order_item', item_id=item_id)
+                    product.stock -= item.quantity
+                    product.save()
+            elif new_status == 'rejected' and order.status_pay in ['paid', 'pending', 'partly_paid']:
+                for item in order.items.select_ralated('product').all():
+                    product = Product.objects.select_for_update().get(id=item.product.id)
+                    product.stock += item.quantity
+                    product.save()
             order.status_pay = new_status
             order.save()
             messages.success(request, f"Payment status updated to '{new_status}'.")
