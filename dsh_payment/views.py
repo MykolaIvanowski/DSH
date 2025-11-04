@@ -233,7 +233,7 @@ def order_item_view(request, item_id):
         VALID_STATUSES = {choice[0] for choice in STATUS_PAY_CHOICES}
         if new_status in VALID_STATUSES:
             if new_status == 'paid' and order.status_pay != 'paid':
-                for item in order.items.select_ralated('product').all():
+                for item in order.items.select_related('product').all():
                     product = Product.objects.select_for_update().get(id=item.product.id)
                     if item.quantity > product.stock:
                         messages.error(request, f'Not enough stock  for {product.name}')
@@ -241,7 +241,7 @@ def order_item_view(request, item_id):
                     product.stock -= item.quantity
                     product.save()
             elif new_status == 'rejected' and order.status_pay in ['paid', 'pending', 'partly_paid']:
-                for item in order.items.select_ralated('product').all():
+                for item in order.items.select_related('product').all():
                     product = Product.objects.select_for_update().get(id=item.product.id)
                     product.stock += item.quantity
                     product.save()
