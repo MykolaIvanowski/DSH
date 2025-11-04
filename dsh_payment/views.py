@@ -27,15 +27,27 @@ def get_access_token():
     url = f"{PAYPAL_URL}/v1/oauth2/token"
     headers = {
         "Accept": "application/json",
-        "Accept-language": "en-US",
+        "Accept-Language": "en_US",
         "Content-Type": "application/x-www-form-urlencoded"
     }
     data = {"grant_type": "client_credentials"}
-    response = requests.post(url=url, headers=headers,data=data, auth=HTTPBasicAuth(PAYPAL_CLIENT_ID, PAYPAL_SECRET))
-    if "access_token" in response.json():
-        return response.json()["access_token"]
+    logger.info("Requesting PayPal access token")
+
+    response = requests.post(
+        url=url,
+        headers=headers,
+        data=data,
+        auth=HTTPBasicAuth(PAYPAL_CLIENT_ID, PAYPAL_SECRET)
+    )
+
+    if response.status_code != 200:
+        raise ValueError(f"Failed to get access token: {response.status_code} {response.text}")
+
+    json_data = response.json()
+    if "access_token" in json_data:
+        return json_data["access_token"]
     else:
-        raise ValueError(f"Access token was not found {response}")
+        raise ValueError(f"Access token not found in response: {json_data}")
 
 
 def log_order_change(order, *, status=None, status_pay=None,amount_paid=None, note=''):
@@ -327,6 +339,7 @@ def payment_paypal_view(request, order_id):
 
     for item in order.items.all():
         product = Product.objects.select_for_update().get(id=item.product.id)
+        logger.debug("Checking stock for product %s: required %s, available %s", product.name, item.quantity, product.stock)
 
         if item.quantity > product.stock:
             messages.error(request, f"Not enough stock for {product.name}")
@@ -346,7 +359,7 @@ def payment_paypal_view(request, order_id):
         "purchase_units": [{
             "amount": {
                 "currency_code": "EUR",
-                "value": str(order.amount_paid)
+                "value": f"{order.amount_paid:.2f}"
             }
         }],
         "application_context": {
@@ -358,11 +371,15 @@ def payment_paypal_view(request, order_id):
         }
     }
 
+    logger.debug("Sending PayPal order payload: %s", order_payload)
     response = requests.post(
         f"{PAYPAL_URL}/v2/checkout/orders",
         headers=headers,
         json=order_payload
     )
+    logger.info("PayPal order creation response status: %s", response.status_code)
+    logger.debug("PayPal order creation response body: %s", response.text)
+
     data = response.json()
 
     order.paypal_order_id = data.get("id")
@@ -373,7 +390,7 @@ def payment_paypal_view(request, order_id):
         if link['rel'] == 'approve':
             messages.success(request, 'Redirecting to PayPal...')
             return redirect(link['href'])
-
+    logger.error("No approval link found in PayPal response.")
     messages.error(request, "Could not create PayPal order")
     return redirect('delivery_info')
 
@@ -401,13 +418,13 @@ def payment_success(request):
     paypal_order_id = request.GET.get('token')
     if not paypal_order_id:
         messages.error(request, 'Missing PayPal token.')
-        return redirect('cart')
+        return redirect('home')
 
     try:
         order = Order.objects.get(paypal_order_id=paypal_order_id)
     except Order.DoesNotExist:
         messages.error(request, 'Order not found.')
-        return redirect('cart')
+        return redirect('home')
 
     if not verify_paypal_capture(order):
         for item in order.items.all():
@@ -419,8 +436,8 @@ def payment_success(request):
         order.status_pay = 'rejected'
         order.save()
 
-        messages.error(request, 'Payment verification failed. Items returned to stock.')
-        return redirect('cart')
+        messages.error(request, 'Payment verification failed.')
+        return redirect('home')
 
     access_token = get_access_token()
     headers = {
@@ -438,10 +455,10 @@ def payment_success(request):
         order.save()
         messages.success(request, 'Payment completed successfully.')
     else:
-        messages.error(request, f"Capture failed: {data.get('status')}")
-        return redirect('cart')
+        logger.warning("PayPal capture response: %s", data)
+        return redirect('payment_cancel')
 
-    return render(request, "payment_success.html", {})
+    return render(request, "payment_success.html", {"order":order})
 
 
 def get_order_from_session_or_db(request):
