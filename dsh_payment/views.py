@@ -1,6 +1,4 @@
 import json
-from idlelib.debugobj_r import remote_object_tree_item
-
 import requests
 import logging
 
@@ -383,7 +381,7 @@ def payment_paypal_view(request, order_id):
 def payment_failed(request):
     order = get_order_from_session_or_db(request)
     if order and order.status == 'approved' and order.status_pay == 'pending':
-        for item in order.items.all():
+        for item in order.items.select_related('product').all():
             product = Product.objects.select_for_update().get(id=item.product.id)
             product.stock += item.quantity
             product.save()
