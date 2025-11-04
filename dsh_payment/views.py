@@ -379,6 +379,7 @@ def payment_paypal_view(request, order_id):
 
 @transaction.atomic
 def payment_failed(request):
+
     order = get_order_from_session_or_db(request)
     if order and order.status == 'approved' and order.status_pay == 'pending':
         for item in order.items.select_related('product').all():
@@ -442,11 +443,11 @@ def payment_success(request):
     return render(request, "payment_success.html", {})
 
 
-def get_order_from_session_or_db(request):
-    order_id = request.session.get('order_id')
-    if order_id:
+def get_order_from_token(request):
+    token = request.GET.get("token")
+    if token:
         try:
-            return Order.objects.get(id=order_id)
+            return Order.objects.get(paypal_order_id=token)
         except Order.DoesNotExist:
             pass
     return None
