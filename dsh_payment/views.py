@@ -443,7 +443,7 @@ def payment_success(request):
     return render(request, "payment_success.html", {})
 
 
-def get_order_from_token(request):
+def get_order_from_session_or_db(request):
     token = request.GET.get("token")
     if token:
         try:
