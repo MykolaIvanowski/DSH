@@ -222,6 +222,7 @@ def update_order_status_view(request, order_id, new_status):
         raise Http404('Nothing here resource not found')
 
 
+@transaction.atomic
 @user_passes_test(lambda u: u.is_authenticated and u.is_superuser)
 def order_item_view(request, item_id):
     order = get_object_or_404(Order, id=item_id)
