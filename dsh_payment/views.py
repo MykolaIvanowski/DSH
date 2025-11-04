@@ -351,8 +351,8 @@ def payment_paypal_view(request, order_id):
             }
         }],
         "application_context": {
-            "return_url": request.build_absolute_uri("/payment_success/"),
-            "cancel_url": request.build_absolute_uri("/payment_cancel/"),
+            "return_url": request.build_absolute_uri("/payment/payment_success/"),
+            "cancel_url": request.build_absolute_uri("/payment/payment_cancel/"),
             "user_action": "PAY_NOW",
             "shipping_preference": "NO_SHIPPING"
 
