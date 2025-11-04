@@ -437,7 +437,7 @@ def payment_success(request):
         order.save()
 
         messages.error(request, 'Payment verification failed.')
-        return redirect('home')
+        return redirect('payment_cancel')
 
     access_token = get_access_token()
     headers = {
@@ -483,8 +483,9 @@ def verify_paypal_capture(order):
     try:
         response = requests.get(url, headers=headers)
         data = response.json()
-        return data.get('status') == 'COMPLETED'
+        status = data.get('status')
+        logger.info("PayPal order %s status: %s", order.paypal_order_id, status)
+        return status == 'APPROVED'
     except Exception as e:
-        logger.exception(f'Error: {e}')
+        logger.exception(f'Error verifying PayPal order {order.paypal_order_id}: {e}')
         return False
-
